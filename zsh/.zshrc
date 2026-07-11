@@ -114,6 +114,7 @@ alias gd="git diff"
 alias zconf='${EDITOR:-nano} ~/.zshrc'
 alias zreload='source ~/.zshrc'
 alias termconfig='${EDITOR:-nano} ~/.config/terminator/config'
+alias wezconfig='${EDITOR:-nano} ~/.config/wezterm/wezterm.lua'
 
 # --- Kubernetes -------------------------------------------------------------------
 if command -v kubectl >/dev/null 2>&1; then

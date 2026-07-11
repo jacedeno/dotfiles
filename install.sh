@@ -69,6 +69,9 @@ link "$DOTFILES/git/.gitconfig"    "$HOME/.gitconfig"
 if command -v terminator >/dev/null 2>&1; then
   link "$DOTFILES/terminator/config" "$HOME/.config/terminator/config"
 fi
+if command -v wezterm >/dev/null 2>&1; then
+  link "$DOTFILES/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
+fi
 
 # --- 5. History file -----------------------------------------------------------------
 touch "$HOME/.zsh_history" && chmod 600 "$HOME/.zsh_history"
