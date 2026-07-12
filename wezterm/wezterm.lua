@@ -27,12 +27,22 @@ config.hide_tab_bar_if_only_one_tab = false
 config.scrollback_lines = 10000
 config.check_for_updates = false -- updates come from the COPR (dnf) on Linux
 
--- --- Keys: terminator-style splits ----------------------------------------------
--- Ctrl+Shift+E = side by side, Ctrl+Shift+O = stacked (terminator muscle memory).
--- Everything else uses wezterm defaults (Ctrl+Shift+T new tab, Ctrl+Shift+C/V copy/paste).
+-- --- Keys: terminator muscle memory ----------------------------------------------
+-- Ctrl+Shift+E = side by side, Ctrl+Shift+O = stacked, Ctrl+Shift+W = close PANE
+-- (wezterm's default closes the whole tab), Ctrl+Shift+X = zoom pane, Alt+arrows =
+-- move between panes. Everything else uses wezterm defaults (Ctrl+Shift+T new tab,
+-- Ctrl+Shift+C/V copy/paste, Ctrl+Shift+F search, Ctrl +/-/0 font size).
+-- Pane resize differs from terminator: Ctrl+Shift+ALT+arrows (Ctrl+Shift+arrows
+-- also navigates panes, wezterm default).
 config.keys = {
   { key = "E", mods = "CTRL|SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
   { key = "O", mods = "CTRL|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+  { key = "W", mods = "CTRL|SHIFT", action = act.CloseCurrentPane({ confirm = true }) },
+  { key = "X", mods = "CTRL|SHIFT", action = act.TogglePaneZoomState },
+  { key = "UpArrow", mods = "ALT", action = act.ActivatePaneDirection("Up") },
+  { key = "DownArrow", mods = "ALT", action = act.ActivatePaneDirection("Down") },
+  { key = "LeftArrow", mods = "ALT", action = act.ActivatePaneDirection("Left") },
+  { key = "RightArrow", mods = "ALT", action = act.ActivatePaneDirection("Right") },
 }
 
 -- --- Mouse: right-click pastes (wezterm has no context menu by design) ----------
