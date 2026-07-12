@@ -16,7 +16,12 @@ config.font = wezterm.font("FiraCode Nerd Font Mono")
 config.font_size = 12.0
 
 -- --- Colors: Tokyo Night, matching the fzf palette in .zshrc -------------------
+-- Background overridden to pure black like the old terminator profile; the
+-- rest of the palette (ANSI colors, cursor, selection) stays Tokyo Night.
 config.color_scheme = "Tokyo Night"
+config.colors = {
+  background = "#000000",
+}
 
 -- --- Window / tabs --------------------------------------------------------------
 -- GNOME Wayland draws no server-side decorations, so integrate the title and
@@ -43,6 +48,19 @@ config.keys = {
   { key = "DownArrow", mods = "ALT", action = act.ActivatePaneDirection("Down") },
   { key = "LeftArrow", mods = "ALT", action = act.ActivatePaneDirection("Left") },
   { key = "RightArrow", mods = "ALT", action = act.ActivatePaneDirection("Right") },
+  -- F2 = rename the current tab (empty input keeps the automatic title)
+  {
+    key = "F2",
+    mods = "NONE",
+    action = act.PromptInputLine({
+      description = "Rename tab",
+      action = wezterm.action_callback(function(window, _pane, line)
+        if line and #line > 0 then
+          window:active_tab():set_title(line)
+        end
+      end),
+    }),
+  },
 }
 
 -- --- Mouse: right-click pastes (wezterm has no context menu by design) ----------
