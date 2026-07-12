@@ -53,8 +53,8 @@ config.mouse_bindings = {
 config.ssh_domains = {
   {
     name = "geekforge",
-    remote_address = "geekforge", -- TODO: set the real hostname/IP
-    username = "geekendzone",
+    remote_address = "geekforge", -- resolved by each machine's ~/.ssh/config Host entry
+    username = "root",
     multiplexing = "None",
   },
 }
