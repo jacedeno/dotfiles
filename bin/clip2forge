@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Push the desktop clipboard (image OR text) to GeekForge and print the remote path.
+#
+# Solves the two chronic terminal-clipboard problems when working against the
+# single dev seat over SSH:
+#   - images can't be pasted into a remote terminal at all
+#   - long text/scripts get mangled by bracketed-paste + tmux + zsh plugins
+#
+# Usage: copy something on the desktop, run `clip2forge`, then reference the
+# printed path on GeekForge (e.g. tell Claude "look at ~/clip/<file>").
+# Requires: wl-clipboard (Wayland) or xclip (X11), and the `geekforge` ssh alias.
+set -euo pipefail
+
+HOST="${CLIP2FORGE_HOST:-geekforge}"
+STAMP=$(date +%Y%m%d-%H%M%S)
+
+have_image() {
+  if command -v wl-paste >/dev/null 2>&1; then
+    wl-paste --list-types 2>/dev/null | grep -q '^image/png'
+  elif command -v xclip >/dev/null 2>&1; then
+    xclip -selection clipboard -t TARGETS -o 2>/dev/null | grep -q '^image/png'
+  else
+    echo "need wl-clipboard (Wayland) or xclip (X11)" >&2; exit 1
+  fi
+}
+
+paste_image() {
+  if command -v wl-paste >/dev/null 2>&1; then wl-paste --type image/png
+  else xclip -selection clipboard -t image/png -o; fi
+}
+
+paste_text() {
+  if command -v wl-paste >/dev/null 2>&1; then wl-paste --no-newline
+  else xclip -selection clipboard -o; fi
+}
+
+if have_image; then
+  REMOTE="clip/${STAMP}.png"
+  paste_image | ssh "$HOST" "mkdir -p ~/clip && cat > ~/$REMOTE"
+else
+  REMOTE="clip/${STAMP}.txt"
+  paste_text | ssh "$HOST" "mkdir -p ~/clip && cat > ~/$REMOTE"
+fi
+
+echo "geekforge:~/$REMOTE"

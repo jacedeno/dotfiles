@@ -72,6 +72,8 @@ fi
 if command -v wezterm >/dev/null 2>&1; then
   link "$DOTFILES/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
 fi
+link "$DOTFILES/bin/clip2forge" "$HOME/.local/bin/clip2forge"
+chmod +x "$DOTFILES/bin/clip2forge"
 
 # --- 5. History file -----------------------------------------------------------------
 touch "$HOME/.zsh_history" && chmod 600 "$HOME/.zsh_history"
