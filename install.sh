@@ -41,7 +41,11 @@ if $IS_MACOS; then
       && log "$formula already installed." \
       || brew install --formula "$formula"
   done
-  for cask in wezterm font-fira-code-nerd-font; do
+  # wezterm@nightly, not the `wezterm` cask: upstream's last stable is 20240203
+  # and Fedora tracks the wezterm-nightly COPR, so nightly is what keeps the
+  # machines on the same build. The two casks conflict — they link the same
+  # binaries — so only ever install one.
+  for cask in wezterm@nightly font-fira-code-nerd-font; do
     brew list --cask "$cask" >/dev/null 2>&1 \
       && log "$cask already installed." \
       || brew install --cask "$cask"

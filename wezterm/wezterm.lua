@@ -35,7 +35,7 @@ config.colors = {
 config.window_decorations = is_macos and "TITLE|RESIZE" or "INTEGRATED_BUTTONS|RESIZE"
 config.hide_tab_bar_if_only_one_tab = false
 config.scrollback_lines = 10000
-config.check_for_updates = false -- updates come from the COPR (dnf) / brew cask
+config.check_for_updates = false -- updates: wezterm-nightly COPR (dnf) / brew cask
 
 if is_macos then
   -- Use a real macOS fullscreen Space (green button / Ctrl+Cmd+F) rather than

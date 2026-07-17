@@ -20,7 +20,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 1. Installs packages: `zsh`, `git`, `curl`, `fzf` via `dnf`/`apt` on Linux —
    `git`, `fzf` via `brew` on macOS (zsh and curl already ship with it), plus the
-   `wezterm` and `font-fira-code-nerd-font` casks.
+   `wezterm@nightly` and `font-fira-code-nerd-font` casks.
 2. Installs [Oh My Posh](https://ohmyposh.dev) (`brew` on macOS, otherwise the
    upstream installer into `~/.local/bin`) and pins the `atomic` theme locally
    (`~/.config/ohmyposh/atomic.omp.json`) so the prompt works offline.
@@ -45,6 +45,10 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 - WezTerm is installed as a cask, so it lands in `/Applications` and its CLI is
   linked into `/opt/homebrew/bin`. Updates come from `brew upgrade --cask`, which
   is why `check_for_updates` stays off in the config.
+- **Nightly, not stable.** Upstream's last stable is `20240203`; Fedora tracks the
+  `wezterm-nightly` COPR, so macOS uses the `wezterm@nightly` cask to stay on the
+  same build. The plain `wezterm` cask conflicts with it (same linked binaries) —
+  `brew uninstall --cask wezterm` first if a machine has it.
 - The zshrc runs `brew shellenv` before anything else, so Apple Silicon
   (`/opt/homebrew`) and Intel (`/usr/local`) both work with no edits.
 - Oh My Zsh is not used. If a machine already has it, `install.sh` backs up the
