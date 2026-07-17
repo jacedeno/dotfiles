@@ -3,7 +3,7 @@
 # dotfiles installer — jacedeno
 # Sets up zsh + Oh My Posh (atomic) + plugins + fzf and symlinks the dotfiles.
 # Idempotent: safe to re-run. Existing files are backed up, never overwritten.
-# Supports Fedora (dnf) and Debian/Ubuntu (apt).
+# Supports Fedora (dnf), Debian/Ubuntu (apt) and macOS (brew).
 # ==============================================================================
 set -euo pipefail
 
@@ -13,17 +13,49 @@ BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 log()  { printf '\033[1;32m[dotfiles]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[dotfiles]\033[0m %s\n' "$*"; }
 
+IS_MACOS=false
+[ "$(uname -s)" = "Darwin" ] && IS_MACOS=true
+
+# On macOS everything comes from brew, so make sure it's on PATH before probing.
+if $IS_MACOS; then
+  for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    [ -x "$brew_bin" ] && eval "$("$brew_bin" shellenv)" && break
+  done
+  if ! command -v brew >/dev/null 2>&1; then
+    warn "Homebrew not found. Install it first: https://brew.sh"
+    exit 1
+  fi
+fi
+
 # --- 1. Packages --------------------------------------------------------------
 log "Installing packages..."
-if command -v dnf >/dev/null 2>&1; then
+if $IS_MACOS; then
+  # zsh and curl ship with macOS (brew's curl is keg-only and isn't even linked),
+  # so only git/fzf/oh-my-posh are needed. WezTerm and the Nerd Font are casks;
+  # on Linux they come from the COPR / nerdfonts.com and aren't managed here.
+  # Guard each one: `brew install` on an already-installed cask is a non-zero
+  # failure under `set -e`. --formula is required for oh-my-posh: the upstream
+  # tap ships a same-named cask that otherwise wins and fails as untrusted.
+  for formula in git fzf oh-my-posh; do
+    brew list --formula "$formula" >/dev/null 2>&1 \
+      && log "$formula already installed." \
+      || brew install --formula "$formula"
+  done
+  for cask in wezterm font-fira-code-nerd-font; do
+    brew list --cask "$cask" >/dev/null 2>&1 \
+      && log "$cask already installed." \
+      || brew install --cask "$cask"
+  done
+elif command -v dnf >/dev/null 2>&1; then
   sudo dnf install -y zsh git curl fzf unzip
 elif command -v apt >/dev/null 2>&1; then
   sudo apt update && sudo apt install -y zsh git curl fzf unzip
 else
-  warn "No dnf/apt found — install zsh, git, curl, fzf manually."
+  warn "No brew/dnf/apt found — install zsh, git, curl, fzf manually."
 fi
 
 # --- 2. Oh My Posh --------------------------------------------------------------
+# macOS got it from brew above; elsewhere use the upstream installer.
 if ! command -v oh-my-posh >/dev/null 2>&1; then
   log "Installing Oh My Posh to ~/.local/bin..."
   mkdir -p "$HOME/.local/bin"

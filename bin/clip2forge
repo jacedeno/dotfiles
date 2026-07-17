@@ -8,14 +8,21 @@
 #
 # Usage: copy something on the desktop, run `clip2forge`, then reference the
 # printed path on GeekForge (e.g. tell Claude "look at ~/clip/<file>").
-# Requires: wl-clipboard (Wayland) or xclip (X11), and the `geekforge` ssh alias.
+# Requires the `geekforge` ssh alias, plus a clipboard reader:
+#   Linux — wl-clipboard (Wayland) or xclip (X11);  macOS — built in (pbpaste).
 set -euo pipefail
 
 HOST="${CLIP2FORGE_HOST:-geekforge}"
 STAMP=$(date +%Y%m%d-%H%M%S)
 
+IS_MACOS=false
+[ "$(uname -s)" = "Darwin" ] && IS_MACOS=true
+
 have_image() {
-  if command -v wl-paste >/dev/null 2>&1; then
+  if $IS_MACOS; then
+    # `clipboard info` lists the flavors, e.g. «class PNGf», 8134, «class TIFF», 9021
+    osascript -e 'clipboard info' 2>/dev/null | grep -q 'class PNGf\|class TIFF'
+  elif command -v wl-paste >/dev/null 2>&1; then
     wl-paste --list-types 2>/dev/null | grep -q '^image/png'
   elif command -v xclip >/dev/null 2>&1; then
     xclip -selection clipboard -t TARGETS -o 2>/dev/null | grep -q '^image/png'
@@ -24,13 +31,36 @@ have_image() {
   fi
 }
 
+# macOS can't stream the clipboard image to stdout, so stage it in a temp file.
+# Screenshots land as PNGf; images copied from apps are often TIFF-only, hence
+# the sips conversion fallback.
+paste_image_macos() {
+  local tmp
+  tmp="$(mktemp -t clip2forge)"
+  if osascript -e "set f to open for access POSIX file \"$tmp\" with write permission" \
+               -e "write (the clipboard as «class PNGf») to f" \
+               -e "close access f" >/dev/null 2>&1; then
+    cat "$tmp"
+  else
+    osascript -e "set f to open for access POSIX file \"$tmp\" with write permission" \
+              -e "write (the clipboard as «class TIFF») to f" \
+              -e "close access f" >/dev/null
+    sips -s format png "$tmp" --out "$tmp.png" >/dev/null 2>&1
+    cat "$tmp.png"
+    rm -f "$tmp.png"
+  fi
+  rm -f "$tmp"
+}
+
 paste_image() {
-  if command -v wl-paste >/dev/null 2>&1; then wl-paste --type image/png
+  if $IS_MACOS; then paste_image_macos
+  elif command -v wl-paste >/dev/null 2>&1; then wl-paste --type image/png
   else xclip -selection clipboard -t image/png -o; fi
 }
 
 paste_text() {
-  if command -v wl-paste >/dev/null 2>&1; then wl-paste --no-newline
+  if $IS_MACOS; then pbpaste
+  elif command -v wl-paste >/dev/null 2>&1; then wl-paste --no-newline
   else xclip -selection clipboard -o; fi
 }
 

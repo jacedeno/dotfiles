@@ -1,8 +1,16 @@
 # ==============================================================================
 # ~/.zshrc — jacedeno dotfiles
-# Portable across Fedora / Debian / Ubuntu. Machine-specific settings go in
-# ~/.zshrc.local (sourced at the end, never committed).
+# Portable across Fedora / Debian / Ubuntu / macOS. Machine-specific settings go
+# in ~/.zshrc.local (sourced at the end, never committed).
 # ==============================================================================
+
+# --- Homebrew (macOS) ---------------------------------------------------------
+# Sets PATH/MANPATH/INFOPATH for brew. Runs first so ~/.local/bin still wins below.
+# Apple Silicon lives in /opt/homebrew, Intel in /usr/local.
+for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  [ -x "$brew_bin" ] && eval "$("$brew_bin" shellenv)" && break
+done
+unset brew_bin
 
 # --- PATH -------------------------------------------------------------------
 export PATH="$HOME/.local/bin:$HOME/bin:/usr/local/bin:$PATH"
@@ -70,11 +78,21 @@ alias ...="cd ../.."
 alias ....="cd ../../.."
 
 # --- Aliases: listing -----------------------------------------------------------
-alias ll="ls -lah --color=auto"
-alias la="ls -A --color=auto"
-alias l="ls -CF --color=auto"
+# GNU ls takes --color=auto; BSD ls (macOS) takes -G. Recent macOS ls understands
+# --color too, so probe instead of assuming by platform.
+if ls --color=auto . >/dev/null 2>&1; then
+  _ls_color="--color=auto"
+else
+  _ls_color="-G"
+fi
+alias ll="ls -lah $_ls_color"
+alias la="ls -A $_ls_color"
+alias l="ls -CF $_ls_color"
+unset _ls_color
 
-# --- Aliases: package manager (per distro) --------------------------------------
+# --- Aliases: package manager (per platform) ------------------------------------
+# The native manager wins: a Linux box running Linuxbrew alongside dnf/apt should
+# still get dnf/apt here. brew is the fallback, which is what macOS lands on.
 if command -v dnf >/dev/null 2>&1; then
   alias pkgu="sudo dnf upgrade --refresh"
   alias pkgi="sudo dnf install"
@@ -87,12 +105,23 @@ elif command -v apt >/dev/null 2>&1; then
   alias pkgs="apt search"
   alias pkgr="sudo apt remove"
   alias pkgls="apt list --installed"
+elif command -v brew >/dev/null 2>&1; then
+  alias pkgu="brew update && brew upgrade"
+  alias pkgi="brew install"
+  alias pkgs="brew search"
+  alias pkgr="brew uninstall"
+  alias pkgls="brew list"
 fi
 
 # --- Aliases: system utilities --------------------------------------------------
 alias cls="clear"
 alias myip="curl -s ifconfig.me && echo"
-alias ports="ss -tulanp"
+# ss is iproute2 (Linux only); macOS gets the closest lsof equivalent.
+if command -v ss >/dev/null 2>&1; then
+  alias ports="ss -tulanp"
+else
+  alias ports="lsof -nP -iTCP -sTCP:LISTEN -iUDP"
+fi
 alias grep="grep --color=auto"
 alias df="df -h"
 alias du="du -sh"

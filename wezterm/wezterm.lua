@@ -1,8 +1,9 @@
 -- ==============================================================================
 -- ~/.config/wezterm/wezterm.lua — jacedeno dotfiles
--- One config for every machine: Linux (daily driver) and Windows 11 (work,
--- portable zip — no install needed). Shell setup lives in zsh/.zshrc and is
--- untouched by the terminal: wezterm just launches the default shell.
+-- One config for every machine: Linux (daily driver), macOS (laptop) and
+-- Windows 11 (work, portable zip — no install needed). Shell setup lives in
+-- zsh/.zshrc and is untouched by the terminal: wezterm just launches the
+-- default shell.
 -- ==============================================================================
 
 local wezterm = require("wezterm")
@@ -10,10 +11,12 @@ local act = wezterm.action
 local config = wezterm.config_builder()
 
 local is_windows = wezterm.target_triple:find("windows") ~= nil
+local is_macos = wezterm.target_triple:find("darwin") ~= nil
 
 -- --- Font (same as the old terminator setup, plus ligatures) -------------------
 config.font = wezterm.font("FiraCode Nerd Font Mono")
-config.font_size = 12.0
+-- 12pt on a Retina panel renders noticeably smaller than on the Linux displays.
+config.font_size = is_macos and 13.0 or 12.0
 
 -- --- Colors: Tokyo Night, matching the fzf palette in .zshrc -------------------
 -- Background overridden to pure black like the old terminator profile; the
@@ -27,10 +30,18 @@ config.colors = {
 -- GNOME Wayland draws no server-side decorations, so integrate the title and
 -- min/max/close buttons into wezterm's tab bar and enable drag-to-resize edges.
 -- The tab bar must stay visible: it IS the title bar (drag it to move the window).
-config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+-- macOS does draw its own decorations, so keep the native title bar and traffic
+-- lights there instead of wezterm's drawn buttons.
+config.window_decorations = is_macos and "TITLE|RESIZE" or "INTEGRATED_BUTTONS|RESIZE"
 config.hide_tab_bar_if_only_one_tab = false
 config.scrollback_lines = 10000
-config.check_for_updates = false -- updates come from the COPR (dnf) on Linux
+config.check_for_updates = false -- updates come from the COPR (dnf) / brew cask
+
+if is_macos then
+  -- Use a real macOS fullscreen Space (green button / Ctrl+Cmd+F) rather than
+  -- wezterm's borderless fill of the current Space.
+  config.native_macos_fullscreen_mode = true
+end
 
 -- --- Keys: terminator muscle memory ----------------------------------------------
 -- Ctrl+Shift+E = side by side, Ctrl+Shift+O = stacked, Ctrl+Shift+W = close PANE
@@ -39,6 +50,8 @@ config.check_for_updates = false -- updates come from the COPR (dnf) on Linux
 -- Ctrl+Shift+C/V copy/paste, Ctrl+Shift+F search, Ctrl +/-/0 font size).
 -- Pane resize differs from terminator: Ctrl+Shift+ALT+arrows (Ctrl+Shift+arrows
 -- also navigates panes, wezterm default).
+-- These bindings apply on macOS too, so the muscle memory carries over; the
+-- native Cmd+C/V/T/N/W defaults keep working there alongside them.
 config.keys = {
   { key = "E", mods = "CTRL|SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
   { key = "O", mods = "CTRL|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
