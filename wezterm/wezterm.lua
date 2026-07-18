@@ -100,10 +100,13 @@ config.ssh_domains = {
   },
 }
 
--- --- Windows (work laptop) --------------------------------------------------------
+-- --- Windows --------------------------------------------------------------------
+-- WSL is the primary shell here too: it runs the same zsh + dotfiles as the Linux
+-- machines (clone the repo inside WSL and run ./install.sh there). WezTerm launches
+-- the default WSL distro in the Linux home. For native PowerShell instead, swap for
+-- { "pwsh.exe", "-NoLogo" } (PS 7) or { "powershell.exe", "-NoLogo" } (Windows PS 5).
 if is_windows then
-  -- Swap for { "pwsh.exe", "-NoLogo" } if PowerShell 7 is available.
-  config.default_prog = { "powershell.exe", "-NoLogo" }
+  config.default_prog = { "wsl.exe", "--cd", "~" }
 end
 
 return config

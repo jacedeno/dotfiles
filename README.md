@@ -2,7 +2,8 @@
 
 My portable terminal environment: **zsh + Oh My Posh (atomic) + fzf + autosuggestions +
 syntax highlighting**, plus git, WezTerm and Terminator configs. One command sets up any
-fresh Fedora, Debian/Ubuntu or macOS machine.
+fresh Fedora, Debian/Ubuntu or macOS machine — and on Windows, `install.ps1` for the
+native side plus WSL for the same zsh shell.
 
 ## Quick start
 
@@ -59,6 +60,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 ```
 ├── install.sh                # setup script (Fedora + Debian/Ubuntu + macOS)
+├── install.ps1               # setup script (Windows-native: WezTerm, font, prompt, profile)
 ├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
 ├── git/.gitconfig
 ├── wezterm/wezterm.lua       # one config for Linux, macOS and Windows
@@ -66,7 +68,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 └── windows/
-    └── Microsoft.PowerShell_profile.ps1   # PowerShell equivalent (manual install)
+    └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
 ```
 
 ## Design notes
@@ -88,6 +90,31 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 ## Windows
 
-Copy `windows/Microsoft.PowerShell_profile.ps1` to `$PROFILE`
-(`Documents\PowerShell\Microsoft.PowerShell_profile.ps1`) and install
-Oh My Posh with `winget install JanDeDobbeleer.OhMyPosh`.
+The shell on Windows is **WSL** — it runs the exact same zsh + dotfiles as the Linux
+machines, so aliases, prompt and config are identical with nothing duplicated. The
+native side (WezTerm, Nerd Font, prompt, PowerShell profile) is set up by `install.ps1`.
+
+```powershell
+# from the repo root, in PowerShell:
+.\install.ps1
+```
+
+`install.ps1` is idempotent and backs up anything it replaces. It installs WezTerm +
+FiraCode Nerd Font + Oh My Posh via `winget`, writes a `~/.wezterm.lua` loader that
+points at `wezterm/wezterm.lua`, and dot-sources `windows/Microsoft.PowerShell_profile.ps1`
+from `$PROFILE`.
+
+Then set up the shell in WSL (the same zsh everywhere):
+
+```powershell
+wsl --install -d Debian          # admin; skip if WSL is already set up
+```
+```bash
+# inside WSL:
+git clone https://github.com/jacedeno/dotfiles.git ~/repos/dotfiles
+cd ~/repos/dotfiles && ./install.sh
+```
+
+WezTerm launches WSL by default (`default_prog = { "wsl.exe", "--cd", "~" }`); the
+PowerShell profile stays light for native tasks. Swap `default_prog` in
+`wezterm/wezterm.lua` if you'd rather default to PowerShell.
