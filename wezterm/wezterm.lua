@@ -52,11 +52,19 @@ end
 -- also navigates panes, wezterm default).
 -- These bindings apply on macOS too, so the muscle memory carries over; the
 -- native Cmd+C/V/T/N/W defaults keep working there alongside them.
+--
+-- Ctrl+Shift+K = copy mode. Taking Ctrl+Shift+X for zoom (terminator muscle
+-- memory) displaced wezterm's default ActivateCopyMode binding, which left no
+-- way to select and copy text from the keyboard. That matters inside full-screen
+-- TUIs (claude, vim, k9s): they capture the mouse, so dragging selects nothing
+-- unless you hold Shift to bypass mouse reporting. Copy mode and Ctrl+Shift+Space
+-- (QuickSelect, a wezterm default) both work with no mouse at all.
 config.keys = {
   { key = "E", mods = "CTRL|SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
   { key = "O", mods = "CTRL|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
   { key = "W", mods = "CTRL|SHIFT", action = act.CloseCurrentPane({ confirm = true }) },
   { key = "X", mods = "CTRL|SHIFT", action = act.TogglePaneZoomState },
+  { key = "K", mods = "CTRL|SHIFT", action = act.ActivateCopyMode },
   { key = "UpArrow", mods = "ALT", action = act.ActivatePaneDirection("Up") },
   { key = "DownArrow", mods = "ALT", action = act.ActivatePaneDirection("Down") },
   { key = "LeftArrow", mods = "ALT", action = act.ActivatePaneDirection("Left") },
@@ -75,6 +83,13 @@ config.keys = {
     }),
   },
 }
+
+-- On macOS, add the native split shortcuts alongside the terminator ones, so the
+-- muscle memory from other Mac terminals (iTerm2, Ghostty) also lands.
+if is_macos then
+  table.insert(config.keys, { key = "d", mods = "CMD", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) })
+  table.insert(config.keys, { key = "D", mods = "CMD|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) })
+end
 
 -- --- Mouse: right-click pastes (wezterm has no context menu by design) ----------
 -- Selecting text already copies it; middle-click pastes the primary selection.

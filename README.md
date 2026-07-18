@@ -46,6 +46,12 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 - WezTerm is installed as a cask, so it lands in `/Applications` and its CLI is
   linked into `/opt/homebrew/bin`. Updates come from `brew upgrade --cask`, which
   is why `check_for_updates` stays off in the config.
+- **Do not move WezTerm.app out of `/Applications`.** The cask's CLI symlink is
+  absolute (`/opt/homebrew/bin/wezterm` → `/Applications/WezTerm.app/...`), so
+  filing the app into a subfolder leaves it dangling: `wezterm` disappears from
+  `$PATH` and `wezterm connect geekforge` stops working, while the GUI keeps
+  launching normally — which makes it look like nothing is wrong. Repoint the
+  symlink or `brew reinstall --cask wezterm@nightly` to recover.
 - **Nightly, not stable.** Upstream's last stable is `20240203`; Fedora tracks the
   `wezterm-nightly` COPR, so macOS uses the `wezterm@nightly` cask to stay on the
   same build. The plain `wezterm` cask conflicts with it (same linked binaries) —
@@ -70,6 +76,33 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 └── windows/
     └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
 ```
+
+## WezTerm keybindings
+
+Terminator muscle memory, so the same keys work on every machine. The native
+`Cmd+C/V/T/N/W` defaults keep working on macOS alongside these.
+
+| Keys | Action |
+| :--- | :--- |
+| `Ctrl+Shift+E` / `Ctrl+Shift+O` | Split side by side / stacked |
+| `Cmd+D` / `Cmd+Shift+D` | Same, macOS-native muscle memory |
+| `Ctrl+Shift+W` | Close **pane** (wezterm's default closes the tab) |
+| `Ctrl+Shift+X` | Zoom pane |
+| `Alt+arrows` | Move between panes |
+| `Ctrl+Shift+Alt+arrows` | Resize pane |
+| `Ctrl+Shift+K` | **Copy mode** — select and copy with the keyboard |
+| `Ctrl+Shift+Space` | **QuickSelect** — hint-jump to URLs, paths, hashes |
+| `Ctrl+Shift+F` | Search scrollback |
+| `F2` | Rename tab (empty input restores the automatic title) |
+
+**Copying out of a full-screen TUI** (claude, vim, k9s) needs one of these: the app
+captures the mouse, so dragging selects nothing. Either hold **Shift while dragging**
+to bypass mouse reporting, or skip the mouse entirely with copy mode / QuickSelect.
+This is the single most-forgotten thing in this config, which is why it is written
+down here.
+
+`Ctrl+Shift+X` is deliberately zoom rather than wezterm's default copy mode — copy
+mode moved to `Ctrl+Shift+K` to keep the terminator layout intact.
 
 ## Design notes
 
