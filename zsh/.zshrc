@@ -99,18 +99,24 @@ if command -v dnf >/dev/null 2>&1; then
   alias pkgs="dnf search"
   alias pkgr="sudo dnf remove"
   alias pkgls="dnf list installed"
+  alias update="sudo dnf upgrade --refresh -y"          # one-shot: refresh + upgrade
+  alias clean="sudo dnf autoremove -y && sudo dnf clean all"  # drop orphans + caches
 elif command -v apt >/dev/null 2>&1; then
   alias pkgu="sudo apt update && sudo apt upgrade"
   alias pkgi="sudo apt install"
   alias pkgs="apt search"
   alias pkgr="sudo apt remove"
   alias pkgls="apt list --installed"
+  alias update="sudo apt update && sudo apt upgrade -y"       # one-shot: refresh + upgrade
+  alias clean="sudo apt autoremove -y && sudo apt autoclean"  # drop orphans + caches
 elif command -v brew >/dev/null 2>&1; then
   alias pkgu="brew update && brew upgrade"
   alias pkgi="brew install"
   alias pkgs="brew search"
   alias pkgr="brew uninstall"
   alias pkgls="brew list"
+  alias update="brew update && brew upgrade"                  # one-shot: refresh + upgrade
+  alias clean="brew cleanup"                                  # drop old versions + caches
 fi
 
 # --- Aliases: system utilities --------------------------------------------------
