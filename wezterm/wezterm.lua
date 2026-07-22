@@ -37,6 +37,16 @@ config.hide_tab_bar_if_only_one_tab = false
 config.scrollback_lines = 10000
 config.check_for_updates = false -- updates: wezterm-nightly COPR (dnf) / brew cask
 
+-- --- GPU rendering --------------------------------------------------------------
+-- Pin the modern WebGpu backend (Vulkan/Metal/DX12) instead of relying on the
+-- version default, and ask for the discrete/high-performance adapter. On the
+-- Linux daily driver this selects the AMD Radeon Pro WX 4100 over the Intel UHD
+-- 630 iGPU; on the MacBook it prefers the discrete GPU when present. Verify the
+-- chosen adapter at runtime from the debug overlay (Ctrl+Shift+L):
+--   wezterm.gui.enumerate_gpus()
+config.front_end = "WebGpu"
+config.webgpu_power_preference = "HighPerformance"
+
 if is_macos then
   -- Use a real macOS fullscreen Space (green button / Ctrl+Cmd+F) rather than
   -- wezterm's borderless fill of the current Space.
