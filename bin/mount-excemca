@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Mount the GeekLab `excemca` SMB share (served by storage LXC CT 117 at 192.168.68.87)
+# on this desktop. Cross-platform: Linux (cifs) and macOS (mount_smbfs).
+#
+# Why this lives in dotfiles: mounting a share is per-machine client config, so it
+# travels with the desktop. The server-side facts (who may mount, how to reset the
+# Samba password) are in geeklab-infra → docs/storage-cockpit-2026-07-21.md.
+#
+# Access: `valid users = @excemca` — the SMB user must be a member of the `excemca`
+# group: geekendzone, sshahein, thernandez, or the `excemca` account itself. The SMB
+# password is the Samba (smbpasswd) password, separate from any OS login password.
+# `storage.geekendzone.net` is Cockpit (HTTP), NOT SMB — always mount by IP.
+#
+# Usage:
+#   mount-excemca [user]        # mount (prompts for user/password if needed)
+#   mount-excemca -u            # unmount
+# Env overrides: EXCEMCA_USER, EXCEMCA_SERVER, EXCEMCA_SHARE, EXCEMCA_MOUNT
+#
+# Persistent Linux mount instead of this script — /etc/fstab with a root-only creds file:
+#   printf 'username=<user>\npassword=<samba-pass>\n' | sudo tee /root/.smb-excemca >/dev/null
+#   sudo chmod 600 /root/.smb-excemca
+#   //192.168.68.87/excemca  /mnt/excemca  cifs  credentials=/root/.smb-excemca,uid=1000,gid=1000,vers=3.0,_netdev,nofail  0 0
+# On Windows there is no script: File Explorer → Map network drive → \\192.168.68.87\excemca.
+set -euo pipefail
+
+SERVER="${EXCEMCA_SERVER:-192.168.68.87}"
+SHARE="${EXCEMCA_SHARE:-excemca}"
+
+IS_MACOS=false
+[ "$(uname -s)" = "Darwin" ] && IS_MACOS=true
+
+if $IS_MACOS; then
+  MOUNT="${EXCEMCA_MOUNT:-$HOME/mnt/$SHARE}"
+else
+  MOUNT="${EXCEMCA_MOUNT:-/mnt/$SHARE}"
+fi
+
+# --- unmount --------------------------------------------------------------------------
+if [ "${1:-}" = "-u" ] || [ "${1:-}" = "--umount" ] || [ "${1:-}" = "--unmount" ]; then
+  if $IS_MACOS; then
+    umount "$MOUNT"
+  else
+    sudo umount "$MOUNT"
+  fi
+  echo "Unmounted $MOUNT"
+  exit 0
+fi
+
+USER_NAME="${1:-${EXCEMCA_USER:-}}"
+if [ -z "$USER_NAME" ]; then
+  read -r -p "SMB user (excemca-group account): " USER_NAME
+fi
+
+read -r -s -p "Samba password for $USER_NAME: " PASS
+echo
+
+mkdir -p "$MOUNT"
+
+if $IS_MACOS; then
+  # mount_smbfs wants the password URL-escaped; keep it simple and let it prompt-free.
+  mount_smbfs "//${USER_NAME}:${PASS}@${SERVER}/${SHARE}" "$MOUNT"
+else
+  command -v mount.cifs >/dev/null 2>&1 || {
+    echo "cifs-utils not installed. Install it: sudo dnf install cifs-utils  (or apt)" >&2
+    exit 1
+  }
+  sudo mount -t cifs "//${SERVER}/${SHARE}" "$MOUNT" \
+    -o "username=${USER_NAME},password=${PASS},uid=$(id -u),gid=$(id -g),vers=3.0"
+fi
+
+echo "Mounted //${SERVER}/${SHARE} at $MOUNT"

@@ -37,6 +37,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `wezterm/wezterm.lua` | `~/.config/wezterm/wezterm.lua` (only if WezTerm is installed) |
    | `terminator/config` | `~/.config/terminator/config` (only if Terminator is installed) |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
+   | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
 
 5. Creates an empty `~/.zshrc.local` for machine-specific config.
 
@@ -72,6 +73,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── wezterm/wezterm.lua       # one config for Linux, macOS and Windows
 ├── terminator/config         # FiraCode Nerd Font profile (Linux only)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
+├── bin/mount-excemca         # mount the GeekLab excemca SMB share (Linux cifs / macOS smbfs)
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 └── windows/
     └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
