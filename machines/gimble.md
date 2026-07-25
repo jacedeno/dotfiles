@@ -145,8 +145,13 @@ axes must carry the same number. True resolution is 31; the current value is 124
 | ---: | :--- | :--- |
 | 31 | 1× (stock) | Far too fast everywhere — a small flick scrolled roughly a full page |
 | 62 | 2× | Better, still too fast |
-| **124** | **4× — current** | Nautilus good, cursor good at `speed 0.8`, Chrome still fast-ish |
 | 248 | 8× | Terminal good, **Nautilus too slow**, **cursor too slow** even at `speed 1.0` |
+| **124** | **4× — settled** | Chrome, Nautilus and the cursor all good at `speed 0.8`. Confirmed in use, not just measured. |
+
+4× is the answer. It was reached by overshooting to 8× first, which is what proved
+the ceiling: at 8× the pointer ran out of compensation and Files became unusable,
+while the terminal finally felt right. Chrome was the last doubt and tested fine
+once everything else settled — so no per-app workaround was needed after all.
 
 ### To change it
 
@@ -179,14 +184,17 @@ Two ceilings are already close at 4×, and both get worse linearly:
 - **Three- and four-finger gestures need proportionally more travel**, because
   their thresholds are in millimetres too.
 
-More importantly, **there is no single value that satisfies every app** — Chrome
-amplifies scroll deltas, Nautilus does not, terminals differ again. That is why 8×
-fixed the terminal while breaking Files. If only *one* app is wrong, fix it at the
-app layer instead:
+More importantly, **apps do not agree on what a scroll delta means** — Chrome,
+Nautilus and terminals each apply their own curve on top. That is why 8× fixed the
+terminal while breaking Files, and it is the reason to be suspicious of any value
+judged from a single app.
 
-- **Chrome** has no scroll-speed setting on Linux, in `chrome://flags` or on the
-  command line. The only real option is a browser extension that multiplies the
-  scroll event. Note Chrome here is the **Flatpak** build (`/app/extra/chrome`),
+If one app ever drifts out of line again, fix it at the app layer rather than
+moving the system-wide knob for everything else:
+
+- **Chrome** has no scroll-speed setting on Linux — not in `chrome://flags`, not
+  on the command line. The only real option is a browser extension that multiplies
+  the scroll event. Note Chrome here is the **Flatpak** build (`/app/extra/chrome`),
   which does its own scroll handling and ignores the pad's reported geometry.
 - **Firefox** does support it natively: `mousewheel.default.delta_multiplier_y`
   in `about:config`.
