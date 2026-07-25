@@ -75,9 +75,21 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
 ├── bin/mount-excemca         # mount the GeekLab excemca SMB share (Linux cifs / macOS smbfs)
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
+├── machines/                 # per-machine hardware notes (docs only, never installed)
+│   └── gimble.md             # Chromebook + MrChromebox running Fedora
 └── windows/
     └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
 ```
+
+## Machines
+
+The configs are portable by design, but some boxes need workarounds a dotfile
+cannot carry — firmware quirks, driver overrides, hardware that only half works.
+Those are documented in [`machines/`](machines/), which `install.sh` never touches.
+
+| Machine | Notes |
+| :--- | :--- |
+| [`gimble`](machines/gimble.md) | Google Chromebook reflashed with MrChromebox, running Fedora. Touchpad scroll tuning, dead webcam, Bluetooth workarounds. |
 
 ## WezTerm keybindings
 
