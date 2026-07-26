@@ -101,7 +101,7 @@ these are managed by `install.sh` — they are hand-placed system files.
 | BT USB autosuspend off | `/etc/udev/rules.d/50-bluetooth-no-autosuspend.rules` | AX211 threw `Hardware error 0x0c` every ~5 min; each crash churned GNOME's input stack and stalled the touchpad ~700 ms. |
 | Disable `usb3-port6` | `/etc/systemd/system/disable-usb3-port6.service` | Dead internal webcam retried enumeration forever (`error -71`). |
 | `vm.swappiness=100`, `vm.page-cluster=0` | `/etc/sysctl.d/99-zram-tuning.conf` | Standard zram tuning — swapping to compressed RAM is cheap, and zram has no seek penalty. |
-| Zero kbd backlight on shutdown | `/usr/lib/systemd/system-shutdown/kbd-backlight.shutdown` | The EC keeps driving the LED PWM after the host powers off, which looks like flickering. |
+| Zero kbd backlight on shutdown | `/usr/lib/systemd/system-shutdown/kbd-backlight.shutdown` | The EC keeps driving the LED PWM after the host powers off, which looks like flickering. See below. |
 | Touchpad resolution override | `/etc/udev/hwdb.d/61-evdev-elan-touchpad.hwdb` | Scroll speed — see below. |
 
 ## Touchpad scroll tuning
@@ -198,6 +198,48 @@ moving the system-wide knob for everything else:
   which does its own scroll handling and ignores the pad's reported geometry.
 - **Firefox** does support it natively: `mousewheel.default.delta_multiplier_y`
   in `about:config`.
+
+## Keyboard backlight
+
+The LED is `chromeos::kbd_backlight` (max 100), driven by the ChromeOS EC through
+`cros_kbd_led_backlight` / `GOOG0002:00` — not a standard ACPI LED. `ectool` is not
+installed, so sysfs is the only interface.
+
+**The symptom:** the backlight flickers once the host stops driving it. The EC keeps
+the PWM running on its own, and a nonzero duty cycle with no host behind it is what
+shows up as flicker.
+
+**Why the host has to do this at all:** sleep state is **`s2idle`**, not `deep`
+(`cat /sys/power/mem_sleep`). The EC never actually loses power, so nothing turns the
+LED off implicitly — it has to be zeroed explicitly on every transition.
+
+Two hooks cover the two transitions:
+
+| Hook | Runs | What it does |
+| :--- | :--- | :--- |
+| `/usr/lib/systemd/system-shutdown/kbd-backlight.shutdown` | Poweroff / reboot | Writes 0 at the very end of shutdown |
+| `/usr/lib/systemd/system-sleep/kbd-backlight-suspend.sh` | Suspend / resume | Saves the value to `/var/lib/kbd-backlight-suspend.state`, writes 0 on `pre`, restores on `post` |
+
+Neither is owned by a package — an OS upgrade will not recreate them. The suspend
+hook predates the shutdown one and also invokes
+`/usr/local/sbin/nvme-unsafe-shutdown-monitor.sh` on resume, which is unrelated
+bookkeeping that happens to live in the same script.
+
+The shutdown hook has to run *late*, after `systemd-backlight@leds:chromeos::kbd_backlight.service`
+has already saved the brightness — otherwise zeroing it is what gets persisted and
+the keyboard comes back dark on the next boot.
+
+**On idle, GNOME does not turn the LED off.** `gsd-power` drops it to
+`idle-brightness` (30) and leaves it there, so the keyboard stays dimly lit while the
+screen is blanked. Verified 2026-07-26: steady at that level, no flicker — so this
+needs no hook. Only the poweroff and suspend transitions did.
+
+To watch what is actually driving the value, poll it — a fight between components
+shows up as an oscillating number, while an EC-level flicker leaves it constant:
+
+```bash
+watch -n0.1 cat /sys/class/leds/chromeos::kbd_backlight/brightness
+```
 
 ## Known issues — not worth fixing
 
