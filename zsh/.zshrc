@@ -145,6 +145,9 @@ alias gp="git push"
 alias gl="git log --oneline --graph --decorate -15"
 alias gd="git diff"
 
+# --- Aliases: Antigravity CLI ----------------------------------------------------
+alias agy-yolo='agy --dangerously-skip-permissions'
+
 # --- Aliases: quick config edit --------------------------------------------------
 alias zconf='${EDITOR:-nano} ~/.zshrc'
 alias zreload='source ~/.zshrc'
