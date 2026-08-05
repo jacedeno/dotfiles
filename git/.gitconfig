@@ -7,3 +7,7 @@
 [credential "https://gist.github.com"]
 	helper = 
 	helper = !gh auth git-credential
+# Machine-specific overrides (identity, credential helper paths). Loaded last,
+# so values here win. Not tracked — same pattern as ~/.zshrc.local.
+[include]
+	path = ~/.gitconfig.local
