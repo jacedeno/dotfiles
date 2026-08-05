@@ -70,3 +70,45 @@ locally instead of remotely.
   no Alacritty equivalent — Alacritty always renders via OpenGL and doesn't
   expose adapter selection in config. Moot here anyway: this laptop's Intel
   HD 520 is the only GPU (no discrete adapter to prefer).
+
+### Bug hit right after reboot: Alacritty wouldn't open from the GNOME app grid
+
+**Symptom**: launching Alacritty from an already-open terminal worked fine;
+launching it by clicking its icon in GNOME did nothing — the window never
+appeared.
+
+**Root cause** (confirmed via `journalctl --user -b 0 | grep -i alacritty`):
+
+```
+Alacritty.desktop[2638]: Error: Custom { kind: NotFound, error: "Failed to
+spawn command 'herdr': No such file or directory (os error 2)" }
+```
+
+Apps launched by GNOME Shell run as `app-gnome-*.scope` units under the
+**systemd `--user` manager**, not as children of a login shell — so they
+never source `~/.zshrc` and never see its `PATH="$HOME/.local/bin:...:$PATH"`.
+Confirmed directly: `systemctl --user show-environment | grep PATH` showed
+`/usr/lib64/ccache:/usr/local/bin:/usr/bin:/var/lib/snapd/snap/bin` — no
+`~/.local/bin`, where `herdr` lives. An interactive shell's `PATH` (via
+`zsh -lc 'echo $PATH'`) had it fine, which is exactly why the terminal-launched
+test earlier that day looked like it worked and gave a false sense that the
+config was done.
+
+**Fix**: `environment.d/10-local-bin.conf` (new in this repo, linked by
+`install.sh` when `systemctl` is present) — a
+[`~/.config/environment.d/`](https://www.freedesktop.org/software/systemd/man/latest/environment.d.html)
+drop-in setting `PATH=${HOME}/.local/bin:${HOME}/bin:${PATH}` for the systemd
+user manager, so every GUI-launched app (not just Alacritty — anything
+dbus-activated or `.desktop`-launched) picks up `~/.local/bin`. Takes effect
+on the **next login** (`systemd-environment-d-generator` runs at manager
+startup, not on `daemon-reload`).
+
+**Verified live without waiting for a relogin**: `systemctl --user
+set-environment PATH=...` followed by `gio launch
+/usr/share/applications/Alacritty.desktop` immediately spawned a working
+Alacritty with `herdr` attached (confirmed via `herdr status` going
+`running` and `pgrep -af herdr` showing the client + server). This GNOME's
+app-scope launch model queries the systemd user manager's *current*
+environment per launch rather than inheriting a stale copy from gnome-shell's
+own startup — useful for testing an environment.d change without a full
+logout, but the drop-in file is still what makes it durable across reboots.

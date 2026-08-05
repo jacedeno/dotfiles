@@ -37,6 +37,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `wezterm/wezterm.lua` | `~/.config/wezterm/wezterm.lua` (only if WezTerm is installed) |
    | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
    | `terminator/config` | `~/.config/terminator/config` (only if Terminator is installed) |
+   | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
    | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
 
@@ -75,6 +76,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── git/.gitconfig
 ├── wezterm/wezterm.lua       # one config for Linux, macOS and Windows
 ├── alacritty/alacritty.toml  # mirrors WezTerm's look, launches herdr (machines that made the swap)
+├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
 ├── terminator/config         # FiraCode Nerd Font profile (Linux only)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
 ├── bin/mount-excemca         # mount the GeekLab excemca SMB share (Linux cifs / macOS smbfs)

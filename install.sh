@@ -111,6 +111,13 @@ fi
 if command -v alacritty >/dev/null 2>&1; then
   link "$DOTFILES/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
 fi
+if command -v systemctl >/dev/null 2>&1; then
+  # GUI-launched apps (GNOME app grid, dbus activation) go through the systemd
+  # --user manager, not a login shell, so they never see ~/.zshrc's PATH.
+  # Needed for anything in ~/.local/bin launched that way (e.g. Alacritty's
+  # terminal.shell = herdr). Takes effect on next login, not immediately.
+  link "$DOTFILES/environment.d/10-local-bin.conf" "$HOME/.config/environment.d/10-local-bin.conf"
+fi
 link "$DOTFILES/bin/clip2forge" "$HOME/.local/bin/clip2forge"
 chmod +x "$DOTFILES/bin/clip2forge"
 link "$DOTFILES/bin/mount-excemca" "$HOME/.local/bin/mount-excemca"
