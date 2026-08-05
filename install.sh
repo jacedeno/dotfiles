@@ -108,6 +108,9 @@ fi
 if command -v wezterm >/dev/null 2>&1; then
   link "$DOTFILES/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
 fi
+if command -v alacritty >/dev/null 2>&1; then
+  link "$DOTFILES/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
+fi
 link "$DOTFILES/bin/clip2forge" "$HOME/.local/bin/clip2forge"
 chmod +x "$DOTFILES/bin/clip2forge"
 link "$DOTFILES/bin/mount-excemca" "$HOME/.local/bin/mount-excemca"

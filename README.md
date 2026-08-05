@@ -1,7 +1,7 @@
 # dotfiles
 
 My portable terminal environment: **zsh + Oh My Posh (atomic) + fzf + autosuggestions +
-syntax highlighting**, plus git, WezTerm and Terminator configs. One command sets up any
+syntax highlighting**, plus git, WezTerm, Alacritty and Terminator configs. One command sets up any
 fresh Fedora, Debian/Ubuntu or macOS machine — and on Windows, `install.ps1` for the
 native side plus WSL for the same zsh shell.
 
@@ -35,11 +35,14 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `zsh/.zshrc` | `~/.zshrc` |
    | `git/.gitconfig` | `~/.gitconfig` |
    | `wezterm/wezterm.lua` | `~/.config/wezterm/wezterm.lua` (only if WezTerm is installed) |
+   | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
    | `terminator/config` | `~/.config/terminator/config` (only if Terminator is installed) |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
    | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
 
-5. Creates an empty `~/.zshrc.local` for machine-specific config.
+5. Creates an empty `~/.zshrc.local` for machine-specific config. Git identity and
+   other machine-specific git settings go in `~/.gitconfig.local` (untracked), which
+   the tracked `.gitconfig` includes last so its values win.
 
 ### macOS notes
 
@@ -71,6 +74,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
 ├── git/.gitconfig
 ├── wezterm/wezterm.lua       # one config for Linux, macOS and Windows
+├── alacritty/alacritty.toml  # mirrors the WezTerm look; launches herdr (Linux only)
 ├── terminator/config         # FiraCode Nerd Font profile (Linux only)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
 ├── bin/mount-excemca         # mount the GeekLab excemca SMB share (Linux cifs / macOS smbfs)

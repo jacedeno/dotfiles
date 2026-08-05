@@ -1,0 +1,60 @@
+# ==============================================================================
+# ~/.config/alacritty/alacritty.toml — jacedeno dotfiles
+# Mirrors the WezTerm setup (~/.config/wezterm/wezterm.lua): same font, same
+# Tokyo Night palette with the pure-black background, same scrollback. Shell
+# setup lives in zsh/.zshrc and is untouched by the terminal.
+# ==============================================================================
+
+# Alacritty's default TERM is "alacritty", which older remote hosts don't have
+# a terminfo entry for. xterm-256color is universally understood.
+[env]
+TERM = "xterm-256color"
+
+# Launch herdr instead of a bare shell: herdr attaches to (or starts) the
+# persistent session and spawns the login shell (zsh) inside its panes.
+# To get a plain zsh without herdr, run: alacritty -e /usr/bin/zsh
+[terminal.shell]
+program = "/home/geekendzone/.local/bin/herdr"
+
+[font]
+size = 12.0
+
+[font.normal]
+family = "FiraCode Nerd Font Mono"
+style = "Regular"
+
+[scrolling]
+history = 10000
+
+# --- Colors: Tokyo Night, background overridden to pure black (as in wezterm) --
+[colors.primary]
+background = "#000000"
+foreground = "#c0caf5"
+
+[colors.cursor]
+text = "#1a1b26"
+cursor = "#c0caf5"
+
+[colors.selection]
+text = "CellForeground"
+background = "#283457"
+
+[colors.normal]
+black = "#15161e"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#a9b1d6"
+
+[colors.bright]
+black = "#414868"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#c0caf5"
