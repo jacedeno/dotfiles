@@ -1,9 +1,13 @@
 # ==============================================================================
 # ~/.config/alacritty/alacritty.toml — jacedeno dotfiles
-# Mirrors the WezTerm setup (~/.config/wezterm/wezterm.lua): same font, same
-# Tokyo Night palette with the pure-black background, same scrollback. Shell
-# setup lives in zsh/.zshrc and is untouched by the terminal.
+# Replaces wezterm/wezterm.lua as the terminal on machines that make the swap
+# (see machines/ThinkPadT470.md). Alacritty has no built-in tabs/panes, so
+# herdr owns splits, tabs and session persistence instead — same font/colors
+# as wezterm.lua otherwise. Shell setup lives in zsh/.zshrc, untouched here.
 # ==============================================================================
+
+[general]
+live_config_reload = true
 
 # Alacritty's default TERM is "alacritty", which older remote hosts don't have
 # a terminfo entry for. xterm-256color is universally understood.
@@ -11,10 +15,12 @@
 TERM = "xterm-256color"
 
 # Launch herdr instead of a bare shell: herdr attaches to (or starts) the
-# persistent session and spawns the login shell (zsh) inside its panes.
+# persistent session and spawns the login shell (zsh) inside its panes. Bare
+# "herdr" resolves via PATH (~/.local/bin, on PATH per zshrc), so this works
+# unchanged on every machine — do not hardcode a user-specific absolute path.
 # To get a plain zsh without herdr, run: alacritty -e /usr/bin/zsh
 [terminal.shell]
-program = "/home/geekendzone/.local/bin/herdr"
+program = "herdr"
 
 [font]
 size = 12.0
@@ -58,3 +64,17 @@ blue = "#7aa2f7"
 magenta = "#bb9af7"
 cyan = "#7dcfff"
 white = "#c0caf5"
+
+# --- Mouse: right-click pastes (matches the wezterm binding) --------------------
+[mouse]
+bindings = [
+  { mouse = "Right", action = "Paste" },
+]
+
+# --- Keys: Ctrl+Shift+K = vi mode, closest equivalent to wezterm's copy mode ----
+# Keyboard-only text selection inside full-screen TUIs (claude, vim, k9s) without
+# fighting mouse capture.
+[keyboard]
+bindings = [
+  { key = "K", mods = "Control|Shift", action = "ToggleViMode" },
+]

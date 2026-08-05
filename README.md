@@ -74,13 +74,14 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
 ├── git/.gitconfig
 ├── wezterm/wezterm.lua       # one config for Linux, macOS and Windows
-├── alacritty/alacritty.toml  # mirrors the WezTerm look; launches herdr (Linux only)
+├── alacritty/alacritty.toml  # mirrors WezTerm's look, launches herdr (machines that made the swap)
 ├── terminator/config         # FiraCode Nerd Font profile (Linux only)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
 ├── bin/mount-excemca         # mount the GeekLab excemca SMB share (Linux cifs / macOS smbfs)
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
-│   └── gimble.md             # Chromebook + MrChromebox running Fedora
+│   ├── gimble.md             # Chromebook + MrChromebox running Fedora
+│   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap
 └── windows/
     └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
 ```
@@ -94,6 +95,7 @@ Those are documented in [`machines/`](machines/), which `install.sh` never touch
 | Machine | Notes |
 | :--- | :--- |
 | [`gimble`](machines/gimble.md) | Google Chromebook reflashed with MrChromebox, running Fedora. Touchpad scroll tuning, dead webcam, Bluetooth workarounds. |
+| [`ThinkPadT470`](machines/ThinkPadT470.md) | Personal work laptop, Fedora. First machine on Alacritty + herdr instead of WezTerm — herdr owns tabs/splits/persistence since Alacritty has none. |
 
 ## WezTerm keybindings
 
