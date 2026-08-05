@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Reject AI attribution in commit messages.
+#
+# Jose's rule: no Co-Authored-By: Claude trailers and no "Generated with" lines,
+# anywhere, in any repo. geeklab-infra and the public jacedeno profile repo were
+# history-rewritten clean on 2026-07-10 to remove them.
+#
+# It came back anyway. On 2026-08-04 two commits (fb2e71c, 56bfd01) landed in
+# geeklab-infra carrying `Co-Authored-By: Claude Sonnet 5` and were pushed to
+# GitHub before anyone noticed. The rule had held for three weeks purely on
+# people remembering it. This hook is here because that is not a control.
+#
+# Installed globally so it covers all repos and every future clone:
+#   git config --global core.hooksPath ~/.config/git/hooks
+#
+# Bypass deliberately with `git commit --no-verify` if you ever actually need to.
+set -euo pipefail
+
+MSG_FILE=$1
+
+# Match the trailer and the marketing line in any casing. Anchored to the start
+# of a line so a commit *discussing* the rule (like the ones that added this
+# hook) does not trip it — those mention the trailer mid-sentence.
+PATTERN='^[[:space:]]*(Co-Authored-By:[[:space:]]*(Claude|Anthropic)|(🤖[[:space:]]*)?Generated with[[:space:]]*\[?Claude)'
+
+if grep -qiE "$PATTERN" "$MSG_FILE"; then
+    echo "" >&2
+    echo "COMMIT REJECTED: AI attribution found in the commit message." >&2
+    echo "" >&2
+    grep -inE "$PATTERN" "$MSG_FILE" | sed 's/^/    line /' >&2
+    echo "" >&2
+    echo "  Remove the line(s) above and commit again." >&2
+    echo "  This repo's convention is no AI attribution anywhere." >&2
+    echo "  Intentional override: git commit --no-verify" >&2
+    echo "" >&2
+    exit 1
+fi

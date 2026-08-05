@@ -102,6 +102,8 @@ link() {
 
 link "$DOTFILES/zsh/.zshrc"        "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig"    "$HOME/.gitconfig"
+link "$DOTFILES/git/hooks"         "$HOME/.config/git/hooks"
+chmod +x "$DOTFILES/git/hooks/"*
 if command -v terminator >/dev/null 2>&1; then
   link "$DOTFILES/terminator/config" "$HOME/.config/terminator/config"
 fi

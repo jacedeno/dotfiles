@@ -34,6 +34,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | :--- | :--- |
    | `zsh/.zshrc` | `~/.zshrc` |
    | `git/.gitconfig` | `~/.gitconfig` |
+   | `git/hooks` | `~/.config/git/hooks` (global `core.hooksPath`; `commit-msg` rejects AI attribution) |
    | `wezterm/wezterm.lua` | `~/.config/wezterm/wezterm.lua` (only if WezTerm is installed) |
    | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
    | `terminator/config` | `~/.config/terminator/config` (only if Terminator is installed) |

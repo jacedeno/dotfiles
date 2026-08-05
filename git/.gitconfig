@@ -11,3 +11,7 @@
 # so values here win. Not tracked — same pattern as ~/.zshrc.local.
 [include]
 	path = ~/.gitconfig.local
+[core]
+	# Global hooks: dotfiles/git/hooks (commit-msg rejects AI attribution).
+	# Linked to ~/.config/git/hooks by install.sh; ~ works cross-platform.
+	hooksPath = ~/.config/git/hooks
