@@ -25,7 +25,6 @@ corporate IT restrictions.
 | :--- | :--- |
 | `~/.zshrc` | `zsh/.zshrc` |
 | `~/.gitconfig` | `git/.gitconfig` |
-| `~/.config/wezterm/wezterm.lua` | `wezterm/wezterm.lua` (kept installed, not the default terminal — see below) |
 | `~/.config/alacritty/alacritty.toml` | `alacritty/alacritty.toml` |
 | `~/.local/bin/clip2forge` | `bin/clip2forge` |
 | `~/.local/bin/mount-excemca` | `bin/mount-excemca` |
@@ -57,17 +56,15 @@ locally instead of remotely.
   machine before the terminal swap — hooks at
   `~/.claude/hooks/herdr-agent-state.sh` and
   `~/.gemini/config/hooks/herdr-agent-state.sh`.
-- **WezTerm config stays installed** (still symlinked, `wezconfig` alias still
-  works) as a fallback; it is just no longer the terminal actually launched
-  day to day. `alacrittyconfig` is the new quick-edit alias.
-- **Font/colors ported 1:1 from `wezterm.lua`**: FiraCode Nerd Font Mono
-  12pt, Tokyo Night palette with the background forced to pure black
+- **Font/colors were ported 1:1 from the old `wezterm.lua`**: FiraCode Nerd
+  Font Mono 12pt, Tokyo Night palette with the background forced to pure black
   (`#000000`) like the old terminator/wezterm setup. `Ctrl+Shift+K` is bound
   to Alacritty's `ToggleViMode` as the closest equivalent to wezterm's copy
   mode (keyboard-only selection inside full-screen TUIs like claude/vim/k9s).
-- **GPU backend pinning does not port.** `wezterm.lua`'s
-  `front_end = "WebGpu"` / `webgpu_power_preference = "HighPerformance"` has
-  no Alacritty equivalent — Alacritty always renders via OpenGL and doesn't
+  `alacrittyconfig` is the quick-edit alias.
+- **GPU backend pinning did not port.** The old `wezterm.lua` set
+  `front_end = "WebGpu"` / `webgpu_power_preference = "HighPerformance"`, which
+  has no Alacritty equivalent — Alacritty always renders via OpenGL and doesn't
   expose adapter selection in config. Moot here anyway: this laptop's Intel
   HD 520 is the only GPU (no discrete adapter to prefer).
 

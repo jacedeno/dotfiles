@@ -48,9 +48,7 @@ Everything from this repo is installed and symlinked normally:
 | `~/.zshrc` | `zsh/.zshrc` |
 | `~/.gitconfig` | `git/.gitconfig` |
 | `~/.config/git/hooks` | `git/hooks` |
-| `~/.config/wezterm/wezterm.lua` | `wezterm/wezterm.lua` (kept installed, no longer the default terminal — see below) |
 | `~/.config/alacritty/alacritty.toml` | `alacritty/alacritty.toml` |
-| `~/.config/terminator/config` | `terminator/config` |
 | `~/.config/environment.d/10-local-bin.conf` | `environment.d/10-local-bin.conf` |
 | `~/.local/bin/clip2forge` | `bin/clip2forge` |
 | `~/.local/bin/mount-excemca` | `bin/mount-excemca` |
@@ -58,8 +56,8 @@ Everything from this repo is installed and symlinked normally:
 `~/.config/ohmyposh/atomic.omp.json` is a **copy**, not a symlink — that is by
 design, `install.sh` vendors the theme so the prompt works offline.
 
-Versions here: zsh 5.9, Oh My Posh 29.17.0, WezTerm `20260716` (nightly COPR),
-Alacritty 0.17.0 (Fedora repos), herdr 0.8.0.
+Versions here: zsh 5.9, Oh My Posh 29.17.0, Alacritty 0.17.0 (Fedora repos),
+herdr 0.8.0.
 
 ### `~/.zshrc.local`
 
@@ -68,34 +66,6 @@ Deliberately almost empty. Only one alias:
 ```zsh
 alias claude-yolo="claude --dangerously-skip-permissions"
 ```
-
-### WezTerm note specific to this machine
-
-`wezterm/wezterm.lua` sets:
-
-```lua
-config.front_end = "WebGpu"
-config.webgpu_power_preference = "HighPerformance"
-```
-
-The comment there explains `HighPerformance` picks the *AMD Radeon Pro WX 4100 over
-the Intel UHD* — **that reasoning is about the other Linux machine, not this one.**
-This Chromebook has no discrete GPU. `wezterm.gui.enumerate_gpus()` here returns:
-
-```
-Vulkan | IntegratedGpu | Intel(R) Graphics (ADL GT2)
-Vulkan | Cpu           | llvmpipe
-Gl     | IntegratedGpu | Mesa Intel(R) Graphics (ADL GT2)
-```
-
-So `HighPerformance` is a no-op — there is nothing to prefer. It is harmless and
-left alone for config portability, but do not expect it to do anything here, and
-be aware `llvmpipe` (software rendering) is in that list: if WezTerm ever feels
-catastrophically slow, confirm it did not land on the CPU backend.
-
-Since the Alacritty swap below this only matters if WezTerm is launched
-deliberately — Alacritty renders through OpenGL and exposes no adapter
-selection at all, so there is no equivalent knob to carry over.
 
 ## Terminal: WezTerm → Alacritty + herdr (2026-08-07)
 
@@ -142,9 +112,9 @@ Confirmed by running `xdg-terminal-exec`, which spawned Alacritty.
 
 `~/.config/xdg-terminals.list` is hand-written and **not** managed by
 `install.sh` — it is a per-machine preference, like everything else in this
-folder. To go back to WezTerm as the default, put `org.wezfurlong.wezterm.desktop`
-in it; WezTerm stays installed and `wezconfig` still works. `alacrittyconfig` is
-the quick-edit alias for the new one.
+folder. To point the default at a different emulator, put its `.desktop` file
+name in that list instead. `alacrittyconfig` is the quick-edit alias for the
+current config.
 
 ### herdr agent integrations
 
