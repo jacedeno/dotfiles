@@ -31,8 +31,8 @@ fi
 log "Installing packages..."
 if $IS_MACOS; then
   # zsh and curl ship with macOS (brew's curl is keg-only and isn't even linked),
-  # so only git/fzf/oh-my-posh are needed. WezTerm and the Nerd Font are casks;
-  # on Linux they come from the COPR / nerdfonts.com and aren't managed here.
+  # so only git/fzf/oh-my-posh are needed. The Nerd Font is a cask; on Linux it
+  # comes from nerdfonts.com and isn't managed here.
   # Guard each one: `brew install` on an already-installed cask is a non-zero
   # failure under `set -e`. --formula is required for oh-my-posh: the upstream
   # tap ships a same-named cask that otherwise wins and fails as untrusted.
@@ -41,11 +41,7 @@ if $IS_MACOS; then
       && log "$formula already installed." \
       || brew install --formula "$formula"
   done
-  # wezterm@nightly, not the `wezterm` cask: upstream's last stable is 20240203
-  # and Fedora tracks the wezterm-nightly COPR, so nightly is what keeps the
-  # machines on the same build. The two casks conflict — they link the same
-  # binaries — so only ever install one.
-  for cask in wezterm@nightly font-fira-code-nerd-font; do
+  for cask in font-fira-code-nerd-font; do
     brew list --cask "$cask" >/dev/null 2>&1 \
       && log "$cask already installed." \
       || brew install --cask "$cask"
@@ -104,12 +100,6 @@ link "$DOTFILES/zsh/.zshrc"        "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig"    "$HOME/.gitconfig"
 link "$DOTFILES/git/hooks"         "$HOME/.config/git/hooks"
 chmod +x "$DOTFILES/git/hooks/"*
-if command -v terminator >/dev/null 2>&1; then
-  link "$DOTFILES/terminator/config" "$HOME/.config/terminator/config"
-fi
-if command -v wezterm >/dev/null 2>&1; then
-  link "$DOTFILES/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
-fi
 if command -v alacritty >/dev/null 2>&1; then
   link "$DOTFILES/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
 fi

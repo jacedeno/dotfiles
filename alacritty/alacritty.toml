@@ -1,9 +1,8 @@
 # ==============================================================================
 # ~/.config/alacritty/alacritty.toml — jacedeno dotfiles
-# Replaces wezterm/wezterm.lua as the terminal on machines that make the swap
-# (see machines/ThinkPadT470.md). Alacritty has no built-in tabs/panes, so
-# herdr owns splits, tabs and session persistence instead — same font/colors
-# as wezterm.lua otherwise. Shell setup lives in zsh/.zshrc, untouched here.
+# The terminal on every machine (see machines/ThinkPadT470.md for the migration
+# off WezTerm). Alacritty has no built-in tabs/panes, so herdr owns splits, tabs
+# and session persistence instead. Shell setup lives in zsh/.zshrc, untouched here.
 # ==============================================================================
 
 [general]
@@ -32,7 +31,7 @@ style = "Regular"
 [scrolling]
 history = 10000
 
-# --- Colors: Tokyo Night, background overridden to pure black (as in wezterm) --
+# --- Colors: Tokyo Night, background overridden to pure black -----------------
 [colors.primary]
 background = "#000000"
 foreground = "#c0caf5"
@@ -65,13 +64,13 @@ magenta = "#bb9af7"
 cyan = "#7dcfff"
 white = "#c0caf5"
 
-# --- Mouse: right-click pastes (matches the wezterm binding) --------------------
+# --- Mouse: right-click pastes --------------------------------------------------
 [mouse]
 bindings = [
   { mouse = "Right", action = "Paste" },
 ]
 
-# --- Keys: Ctrl+Shift+K = vi mode, closest equivalent to wezterm's copy mode ----
+# --- Keys: Ctrl+Shift+K = vi mode -----------------------------------------------
 # Keyboard-only text selection inside full-screen TUIs (claude, vim, k9s) without
 # fighting mouse capture.
 [keyboard]

@@ -151,8 +151,6 @@ alias agy-yolo='agy --dangerously-skip-permissions'
 # --- Aliases: quick config edit --------------------------------------------------
 alias zconf='${EDITOR:-nano} ~/.zshrc'
 alias zreload='source ~/.zshrc'
-alias termconfig='${EDITOR:-nano} ~/.config/terminator/config'
-alias wezconfig='${EDITOR:-nano} ~/.config/wezterm/wezterm.lua'
 alias alacrittyconfig='${EDITOR:-nano} ~/.config/alacritty/alacritty.toml'
 
 # --- Kubernetes -------------------------------------------------------------------
