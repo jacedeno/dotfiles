@@ -3,8 +3,11 @@
   dotfiles installer — jacedeno (Windows-native half)
   ============================================================================
   Sets up the Windows-native side of the cross-platform terminal environment:
-  installs WezTerm + FiraCode Nerd Font + Oh My Posh, points WezTerm and the
-  PowerShell profile at the repo configs.
+  installs Git + FiraCode Nerd Font + Oh My Posh and points the PowerShell
+  profile at the repo config.
+
+  No terminal emulator is installed: Windows Terminal ships with Windows, and
+  the repo's terminal config (Alacritty) is Linux/macOS only.
 
   The *shell* on Windows is WSL — it runs the exact same zsh + dotfiles as the
   Linux machines. After this script:
@@ -12,7 +15,7 @@
       # then, inside WSL:
       git clone https://github.com/jacedeno/dotfiles.git ~/repos/dotfiles
       cd ~/repos/dotfiles && ./install.sh
-  WezTerm launches WSL by default (see wezterm/wezterm.lua).
+  Point Windows Terminal's default profile at the WSL distro to land in zsh.
 
   Idempotent: safe to re-run. Existing files are backed up, never overwritten.
   Run from the repo root:   .\install.ps1
@@ -33,8 +36,7 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
 
 $packages = @(
   @{ id = 'Git.Git';                 name = 'Git' },
-  @{ id = 'JanDeDobbeleer.OhMyPosh'; name = 'Oh My Posh' },
-  @{ id = 'wez.wezterm';             name = 'WezTerm' }
+  @{ id = 'JanDeDobbeleer.OhMyPosh'; name = 'Oh My Posh' }
 )
 foreach ($p in $packages) {
   if (winget list --id $p.id -e 2>$null | Select-String -SimpleMatch $p.id) {
@@ -70,19 +72,12 @@ function Place-File {
   Log "Wrote: $Path"
 }
 
-# --- 4. WezTerm config: a stub that loads the repo file (always current) --------
+# --- 4. PowerShell profile: dot-source the repo profile (always current) --------
 # Symlinks on Windows need admin / Developer Mode, so use a one-line loader instead.
-$wezRepo = (Join-Path $Dotfiles 'wezterm\wezterm.lua') -replace '\\', '/'
-Place-File (Join-Path $HOME '.wezterm.lua') @"
--- Loads the dotfiles WezTerm config. Do not edit here — edit the repo file.
-return dofile([[$wezRepo]])
-"@
-
-# --- 5. PowerShell profile: dot-source the repo profile (always current) --------
 $psRepo = Join-Path $Dotfiles 'windows\Microsoft.PowerShell_profile.ps1'
 Place-File $PROFILE ". `"$psRepo`""
 
-# --- 6. WSL — the real shell ---------------------------------------------------
+# --- 5. WSL — the real shell ---------------------------------------------------
 if (Get-Command wsl -ErrorAction SilentlyContinue) {
   if ((wsl --list --quiet 2>$null | Where-Object { $_.Trim() })) {
     Log "WSL present. Inside it: clone this repo and run ./install.sh for the zsh setup."
@@ -95,4 +90,4 @@ if (Get-Command wsl -ErrorAction SilentlyContinue) {
   Warn "  — that gives you the same zsh + aliases + prompt as the Linux machines."
 }
 
-Log "Done. Open a new WezTerm window (it launches WSL by default)."
+Log "Done. Open a new Windows Terminal tab on the WSL distro for the zsh setup."
