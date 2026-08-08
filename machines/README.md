@@ -9,7 +9,7 @@ Nothing here is installed or symlinked by `install.sh`. It is documentation.
 
 | Machine | File | What it is |
 | :--- | :--- | :--- |
-| `gimble` | [gimble.md](gimble.md) | Google "Gimble" Chromebook reflashed with MrChromebox, running Fedora |
+| `gimble` | [gimble.md](gimble.md) | Google "Gimble" Chromebook reflashed with MrChromebox, running Fedora — Alacritty + herdr as GNOME's default terminal |
 | `ThinkPadT470` | [ThinkPadT470.md](ThinkPadT470.md) | Personal work laptop, Fedora — WezTerm → Alacritty + herdr terminal swap |
 
 ## When to add a machine here

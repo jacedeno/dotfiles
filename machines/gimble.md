@@ -47,15 +47,19 @@ Everything from this repo is installed and symlinked normally:
 | :--- | :--- |
 | `~/.zshrc` | `zsh/.zshrc` |
 | `~/.gitconfig` | `git/.gitconfig` |
-| `~/.config/wezterm/wezterm.lua` | `wezterm/wezterm.lua` |
+| `~/.config/git/hooks` | `git/hooks` |
+| `~/.config/wezterm/wezterm.lua` | `wezterm/wezterm.lua` (kept installed, no longer the default terminal — see below) |
+| `~/.config/alacritty/alacritty.toml` | `alacritty/alacritty.toml` |
 | `~/.config/terminator/config` | `terminator/config` |
+| `~/.config/environment.d/10-local-bin.conf` | `environment.d/10-local-bin.conf` |
 | `~/.local/bin/clip2forge` | `bin/clip2forge` |
 | `~/.local/bin/mount-excemca` | `bin/mount-excemca` |
 
 `~/.config/ohmyposh/atomic.omp.json` is a **copy**, not a symlink — that is by
 design, `install.sh` vendors the theme so the prompt works offline.
 
-Versions here: zsh 5.9, Oh My Posh 29.17.0, WezTerm `20260716` (nightly COPR).
+Versions here: zsh 5.9, Oh My Posh 29.17.0, WezTerm `20260716` (nightly COPR),
+Alacritty 0.17.0 (Fedora repos), herdr 0.8.0.
 
 ### `~/.zshrc.local`
 
@@ -88,6 +92,72 @@ So `HighPerformance` is a no-op — there is nothing to prefer. It is harmless a
 left alone for config portability, but do not expect it to do anything here, and
 be aware `llvmpipe` (software rendering) is in that list: if WezTerm ever feels
 catastrophically slow, confirm it did not land on the CPU backend.
+
+Since the Alacritty swap below this only matters if WezTerm is launched
+deliberately — Alacritty renders through OpenGL and exposes no adapter
+selection at all, so there is no equivalent knob to carry over.
+
+## Terminal: WezTerm → Alacritty + herdr (2026-08-07)
+
+Second machine to make the swap, after `ThinkPadT470`. Same shape: Alacritty as
+the emulator with `terminal.shell = herdr`, so every window attaches to herdr's
+persistent local session; splits, tabs and detach (`ctrl+b q`) are herdr's
+bindings, since Alacritty has no multiplexing of its own. Font and colors come
+from `alacritty/alacritty.toml` unchanged (FiraCode Nerd Font Mono 12pt, Tokyo
+Night on pure black), and the font was already installed here.
+
+Install was `dnf install alacritty` (0.17.0, in Fedora's repos — no COPR needed,
+unlike WezTerm) plus herdr's official installer,
+`curl -fsSL https://herdr.dev/install.sh | sh`, into `~/.local/bin`.
+
+**The GNOME `PATH` bug did not happen here, because the fix shipped first.**
+`systemctl --user show-environment` on this box showed
+`PATH=/usr/local/bin:/usr/bin` — no `~/.local/bin`, exactly the state that made
+Alacritty fail to spawn `herdr` from the app grid on the ThinkPad. Re-running
+`install.sh` linked `environment.d/10-local-bin.conf` before Alacritty was ever
+launched from GNOME, so the bug was skipped rather than rediscovered. The
+drop-in takes effect at next login; it was applied live for the test with
+`systemctl --user set-environment PATH="$HOME/.local/bin:$HOME/bin:/usr/local/bin:/usr/bin"`.
+
+**Verified 2026-08-07**: `gio launch /usr/share/applications/Alacritty.desktop`
+opened a window with no errors and flipped `herdr status` from stopped to
+`server: running` (auto-started). Closing that window left `herdr server` alive
+with the client and Alacritty gone — correct persistence, not a leak.
+
+### Default terminal needed a package that was missing
+
+Unlike the ThinkPad, this machine also made Alacritty GNOME's **default**
+terminal — which turned out to need more than a config file:
+
+- `org.gnome.desktop.default-applications.terminal exec` was already
+  `xdg-terminal-exec` (GNOME 50's default), **but the binary did not exist** —
+  nothing on the system provided it. So the setting pointed at a missing
+  program, and "Open in Terminal" had nothing well-defined to launch.
+- Fix: `dnf install xdg-terminal-exec` (0.14.1) and write
+  `~/.config/xdg-terminals.list` containing `Alacritty.desktop`.
+
+That list file is the spec-compliant lever, not the deprecated gsettings key —
+leave `exec` pointing at `xdg-terminal-exec` and change the list instead.
+Confirmed by running `xdg-terminal-exec`, which spawned Alacritty.
+
+`~/.config/xdg-terminals.list` is hand-written and **not** managed by
+`install.sh` — it is a per-machine preference, like everything else in this
+folder. To go back to WezTerm as the default, put `org.wezfurlong.wezterm.desktop`
+in it; WezTerm stays installed and `wezconfig` still works. `alacrittyconfig` is
+the quick-edit alias for the new one.
+
+### herdr agent integrations
+
+Installed the same day, both fresh on this machine:
+
+```bash
+herdr integration install claude            # ~/.claude/hooks/herdr-agent-state.sh
+herdr integration install antigravity-cli   # ~/.gemini/config/hooks/herdr-agent-state.sh
+```
+
+Each also registers itself in the agent's own settings (`~/.claude/settings.json`,
+`~/.gemini/config/hooks.json`), which is what lets herdr show per-pane agent
+state. Reversible with `herdr integration uninstall <name>`.
 
 ## System tweaks applied
 
