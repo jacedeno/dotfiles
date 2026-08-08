@@ -1,7 +1,7 @@
 # dotfiles
 
 My portable terminal environment: **zsh + Oh My Posh (atomic) + fzf + autosuggestions +
-syntax highlighting**, plus git, WezTerm, Alacritty and Terminator configs. One command sets up any
+syntax highlighting**, plus git and Alacritty configs. One command sets up any
 fresh Fedora, Debian/Ubuntu or macOS machine — and on Windows, `install.ps1` for the
 native side plus WSL for the same zsh shell.
 
@@ -21,7 +21,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 1. Installs packages: `zsh`, `git`, `curl`, `fzf` via `dnf`/`apt` on Linux —
    `git`, `fzf` via `brew` on macOS (zsh and curl already ship with it), plus the
-   `wezterm@nightly` and `font-fira-code-nerd-font` casks.
+   `font-fira-code-nerd-font` cask.
 2. Installs [Oh My Posh](https://ohmyposh.dev) (`brew` on macOS, otherwise the
    upstream installer into `~/.local/bin`) and pins the `atomic` theme locally
    (`~/.config/ohmyposh/atomic.omp.json`) so the prompt works offline.
@@ -35,9 +35,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `zsh/.zshrc` | `~/.zshrc` |
    | `git/.gitconfig` | `~/.gitconfig` |
    | `git/hooks` | `~/.config/git/hooks` (global `core.hooksPath`; `commit-msg` rejects AI attribution) |
-   | `wezterm/wezterm.lua` | `~/.config/wezterm/wezterm.lua` (only if WezTerm is installed) |
    | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
-   | `terminator/config` | `~/.config/terminator/config` (only if Terminator is installed) |
    | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
    | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
@@ -49,19 +47,9 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ### macOS notes
 
 - Requires [Homebrew](https://brew.sh) — the installer stops early if it's missing.
-- WezTerm is installed as a cask, so it lands in `/Applications` and its CLI is
-  linked into `/opt/homebrew/bin`. Updates come from `brew upgrade --cask`, which
-  is why `check_for_updates` stays off in the config.
-- **Do not move WezTerm.app out of `/Applications`.** The cask's CLI symlink is
-  absolute (`/opt/homebrew/bin/wezterm` → `/Applications/WezTerm.app/...`), so
-  filing the app into a subfolder leaves it dangling: `wezterm` disappears from
-  `$PATH` and `wezterm connect geekforge` stops working, while the GUI keeps
-  launching normally — which makes it look like nothing is wrong. Repoint the
-  symlink or `brew reinstall --cask wezterm@nightly` to recover.
-- **Nightly, not stable.** Upstream's last stable is `20240203`; Fedora tracks the
-  `wezterm-nightly` COPR, so macOS uses the `wezterm@nightly` cask to stay on the
-  same build. The plain `wezterm` cask conflicts with it (same linked binaries) —
-  `brew uninstall --cask wezterm` first if a machine has it.
+- No terminal emulator is installed here: `install.sh` only ships the Nerd Font
+  cask, and `alacritty/alacritty.toml` is linked only if Alacritty is already
+  present. Install it yourself (`brew install --cask alacritty`) if you want it.
 - The zshrc runs `brew shellenv` before anything else, so Apple Silicon
   (`/opt/homebrew`) and Intel (`/usr/local`) both work with no edits.
 - Oh My Zsh is not used. If a machine already has it, `install.sh` backs up the
@@ -72,13 +60,11 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 ```
 ├── install.sh                # setup script (Fedora + Debian/Ubuntu + macOS)
-├── install.ps1               # setup script (Windows-native: WezTerm, font, prompt, profile)
+├── install.ps1               # setup script (Windows-native: git, font, prompt, profile)
 ├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
 ├── git/.gitconfig
-├── wezterm/wezterm.lua       # one config for Linux, macOS and Windows
-├── alacritty/alacritty.toml  # mirrors WezTerm's look, launches herdr (machines that made the swap)
+├── alacritty/alacritty.toml  # the terminal — Tokyo Night on black, launches herdr
 ├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
-├── terminator/config         # FiraCode Nerd Font profile (Linux only)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
 ├── bin/mount-excemca         # mount the GeekLab excemca SMB share (Linux cifs / macOS smbfs)
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
@@ -100,32 +86,26 @@ Those are documented in [`machines/`](machines/), which `install.sh` never touch
 | [`gimble`](machines/gimble.md) | Google Chromebook reflashed with MrChromebox, running Fedora. Touchpad scroll tuning, dead webcam, Bluetooth workarounds. Also on Alacritty + herdr, and the only machine where it is GNOME's *default* terminal (needs `xdg-terminal-exec`). |
 | [`ThinkPadT470`](machines/ThinkPadT470.md) | Personal work laptop, Fedora. First machine on Alacritty + herdr instead of WezTerm — herdr owns tabs/splits/persistence since Alacritty has none. |
 
-## WezTerm keybindings
+## Terminal: Alacritty + herdr
 
-Terminator muscle memory, so the same keys work on every machine. The native
-`Cmd+C/V/T/N/W` defaults keep working on macOS alongside these.
+Alacritty is the emulator; it has no tabs or panes of its own, so
+`alacritty/alacritty.toml` sets `terminal.shell = herdr` and every window
+attaches to herdr's persistent local session. **Splits, tabs and detach are
+herdr's bindings** (`ctrl+b` prefix), not Alacritty's — see herdr's own docs.
+
+What the repo config binds directly:
 
 | Keys | Action |
 | :--- | :--- |
-| `Ctrl+Shift+E` / `Ctrl+Shift+O` | Split side by side / stacked |
-| `Cmd+D` / `Cmd+Shift+D` | Same, macOS-native muscle memory |
-| `Ctrl+Shift+W` | Close **pane** (wezterm's default closes the tab) |
-| `Ctrl+Shift+X` | Zoom pane |
-| `Alt+arrows` | Move between panes |
-| `Ctrl+Shift+Alt+arrows` | Resize pane |
-| `Ctrl+Shift+K` | **Copy mode** — select and copy with the keyboard |
-| `Ctrl+Shift+Space` | **QuickSelect** — hint-jump to URLs, paths, hashes |
-| `Ctrl+Shift+F` | Search scrollback |
-| `F2` | Rename tab (empty input restores the automatic title) |
+| `Ctrl+Shift+K` | Toggle **vi mode** — select and copy with the keyboard |
+| Right click | Paste |
+
+To get a plain zsh with no herdr in the way: `alacritty -e /usr/bin/zsh`.
 
 **Copying out of a full-screen TUI** (claude, vim, k9s) needs one of these: the app
 captures the mouse, so dragging selects nothing. Either hold **Shift while dragging**
-to bypass mouse reporting, or skip the mouse entirely with copy mode / QuickSelect.
-This is the single most-forgotten thing in this config, which is why it is written
-down here.
-
-`Ctrl+Shift+X` is deliberately zoom rather than wezterm's default copy mode — copy
-mode moved to `Ctrl+Shift+K` to keep the terminator layout intact.
+to bypass mouse reporting, or skip the mouse entirely with `Ctrl+Shift+K`. This is
+the single most-forgotten thing in this config, which is why it is written down here.
 
 ## Design notes
 
@@ -148,17 +128,17 @@ mode moved to `Ctrl+Shift+K` to keep the terminator layout intact.
 
 The shell on Windows is **WSL** — it runs the exact same zsh + dotfiles as the Linux
 machines, so aliases, prompt and config are identical with nothing duplicated. The
-native side (WezTerm, Nerd Font, prompt, PowerShell profile) is set up by `install.ps1`.
+native side (git, Nerd Font, prompt, PowerShell profile) is set up by `install.ps1`.
+No terminal emulator is installed: Windows Terminal already ships with Windows.
 
 ```powershell
 # from the repo root, in PowerShell:
 .\install.ps1
 ```
 
-`install.ps1` is idempotent and backs up anything it replaces. It installs WezTerm +
-FiraCode Nerd Font + Oh My Posh via `winget`, writes a `~/.wezterm.lua` loader that
-points at `wezterm/wezterm.lua`, and dot-sources `windows/Microsoft.PowerShell_profile.ps1`
-from `$PROFILE`.
+`install.ps1` is idempotent and backs up anything it replaces. It installs Git +
+Oh My Posh via `winget`, the FiraCode Nerd Font via `oh-my-posh font install`, and
+dot-sources `windows/Microsoft.PowerShell_profile.ps1` from `$PROFILE`.
 
 Then set up the shell in WSL (the same zsh everywhere):
 
@@ -171,6 +151,5 @@ git clone https://github.com/jacedeno/dotfiles.git ~/repos/dotfiles
 cd ~/repos/dotfiles && ./install.sh
 ```
 
-WezTerm launches WSL by default (`default_prog = { "wsl.exe", "--cd", "~" }`); the
-PowerShell profile stays light for native tasks. Swap `default_prog` in
-`wezterm/wezterm.lua` if you'd rather default to PowerShell.
+Set the WSL distro as Windows Terminal's default profile to land straight in zsh;
+the PowerShell profile stays light for native tasks.
