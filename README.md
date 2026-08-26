@@ -66,7 +66,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── alacritty/alacritty.toml  # the terminal — Tokyo Night on black, launches herdr
 ├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
-├── bin/mount-excemca         # mount the GeekLab excemca SMB share (Linux cifs / macOS smbfs)
+├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
 │   ├── gimble.md             # Chromebook + MrChromebox running Fedora — Alacritty+herdr, default terminal

@@ -1,42 +1,77 @@
 #!/usr/bin/env bash
-# Mount the GeekLab `excemca` SMB share (served by storage LXC CT 117 at 192.168.68.87)
-# on this desktop. Cross-platform: Linux (cifs) and macOS (mount_smbfs).
+# Mount a GeekLab SMB share (served by storage LXC CT 117 at 192.168.68.87) on this
+# desktop. Cross-platform: Linux (cifs) and macOS (mount_smbfs).
 #
 # Why this lives in dotfiles: mounting a share is per-machine client config, so it
 # travels with the desktop. The server-side facts (who may mount, how to reset the
-# Samba password) are in geeklab-infra → docs/storage-cockpit-2026-07-21.md.
+# Samba password) are in geeklab-infra -> docs/storage-cockpit-2026-07-21.md.
 #
-# Access: `valid users = @excemca` — the SMB user must be a member of the `excemca`
-# group: geekendzone, sshahein, thernandez, or the `excemca` account itself. The SMB
-# password is the Samba (smbpasswd) password, separate from any OS login password.
-# `storage.geekendzone.net` is Cockpit (HTTP), NOT SMB — always mount by IP.
+# Shares this script knows about:
+#   excemca        `valid users = @excemca` (gid 3001) -- geekendzone, sshahein,
+#                  thernandez, and the `excemca` account itself.
+#   Family Share   per-user folders (geekendzone, scedeno, sshahein) under a `Family`
+#                  group (gid 3000). Note the space in the name -- always quote it.
+#
+# The SMB password is the Samba (smbpasswd) password, separate from any OS login
+# password, and it is stored nowhere: reset a forgotten one from the PVE host with
+# `pct exec 117 -- smbpasswd <user>`. A Unix account can exist with no usable Samba
+# password at all -- check `pct exec 117 -- pdbedit -L` before assuming the account
+# is missing. `storage.geekendzone.net` is Cockpit (HTTP), NOT SMB -- mount by IP.
 #
 # Usage:
-#   mount-excemca [user]        # mount (prompts for user/password if needed)
-#   mount-excemca -u            # unmount
+#   mount-excemca [user]                    # mount excemca (default)
+#   mount-excemca -f [user]                 # mount Family Share
+#   mount-excemca -s 'fls-manuals' [user]   # mount any other share by name
+#   mount-excemca -u [-f | -s <share>]      # unmount that share
 # Env overrides: EXCEMCA_USER, EXCEMCA_SERVER, EXCEMCA_SHARE, EXCEMCA_MOUNT
 #
-# Persistent Linux mount instead of this script — /etc/fstab with a root-only creds file:
+# The mount point is derived from the share name, lowercased and slugified, so
+# `Family Share` lands on /mnt/family-share -- no space in any path.
+#
+# Persistent Linux mount instead of this script -- /etc/fstab with a root-only creds
+# file. In fstab a space in the share name MUST be written as \040:
 #   printf 'username=<user>\npassword=<samba-pass>\n' | sudo tee /root/.smb-excemca >/dev/null
 #   sudo chmod 600 /root/.smb-excemca
-#   //192.168.68.87/excemca  /mnt/excemca  cifs  credentials=/root/.smb-excemca,uid=1000,gid=1000,vers=3.0,_netdev,nofail  0 0
-# On Windows there is no script: File Explorer → Map network drive → \\192.168.68.87\excemca.
+#   //192.168.68.87/excemca         /mnt/excemca       cifs  credentials=/root/.smb-excemca,uid=1000,gid=1000,vers=3.0,_netdev,nofail  0 0
+#   //192.168.68.87/Family\040Share /mnt/family-share  cifs  credentials=/root/.smb-family,uid=1000,gid=1000,vers=3.0,_netdev,nofail   0 0
+#
+# On Windows there is no script: File Explorer -> Map network drive ->
+#   \\192.168.68.87\excemca      or      \\192.168.68.87\Family Share
+# Works off-LAN too, over the WireGuard VPN -- the share is reachable by IP either way.
 set -euo pipefail
 
 SERVER="${EXCEMCA_SERVER:-192.168.68.87}"
 SHARE="${EXCEMCA_SHARE:-excemca}"
+USER_NAME=""
+DO_UNMOUNT=false
+
+usage() { sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -u|--umount|--unmount) DO_UNMOUNT=true; shift ;;
+    -f|--family)           SHARE="Family Share"; shift ;;
+    -s|--share)            SHARE="${2:?-s needs a share name}"; shift 2 ;;
+    -h|--help)             usage; exit 0 ;;
+    -*)                    echo "unknown option: $1 (try --help)" >&2; exit 2 ;;
+    *)                     USER_NAME="$1"; shift ;;
+  esac
+done
+
+# `Family Share` -> `family-share`; `excemca` stays `excemca`.
+SLUG="$(printf '%s' "$SHARE" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/-$//')"
 
 IS_MACOS=false
 [ "$(uname -s)" = "Darwin" ] && IS_MACOS=true
 
 if $IS_MACOS; then
-  MOUNT="${EXCEMCA_MOUNT:-$HOME/mnt/$SHARE}"
+  MOUNT="${EXCEMCA_MOUNT:-$HOME/mnt/$SLUG}"
 else
-  MOUNT="${EXCEMCA_MOUNT:-/mnt/$SHARE}"
+  MOUNT="${EXCEMCA_MOUNT:-/mnt/$SLUG}"
 fi
 
 # --- unmount --------------------------------------------------------------------------
-if [ "${1:-}" = "-u" ] || [ "${1:-}" = "--umount" ] || [ "${1:-}" = "--unmount" ]; then
+if $DO_UNMOUNT; then
   if $IS_MACOS; then
     umount "$MOUNT"
   else
@@ -46,9 +81,10 @@ if [ "${1:-}" = "-u" ] || [ "${1:-}" = "--umount" ] || [ "${1:-}" = "--unmount" 
   exit 0
 fi
 
-USER_NAME="${1:-${EXCEMCA_USER:-}}"
+# --- mount ----------------------------------------------------------------------------
+[ -n "$USER_NAME" ] || USER_NAME="${EXCEMCA_USER:-}"
 if [ -z "$USER_NAME" ]; then
-  read -r -p "SMB user (excemca-group account): " USER_NAME
+  read -r -p "SMB user for '$SHARE': " USER_NAME
 fi
 
 read -r -s -p "Samba password for $USER_NAME: " PASS
@@ -57,13 +93,26 @@ echo
 mkdir -p "$MOUNT"
 
 if $IS_MACOS; then
-  # mount_smbfs wants the password URL-escaped; keep it simple and let it prompt-free.
-  mount_smbfs "//${USER_NAME}:${PASS}@${SERVER}/${SHARE}" "$MOUNT"
+  # mount_smbfs takes a URL, so anything non-alphanumeric in the share name or the
+  # password has to be percent-encoded -- this is what breaks on `Family Share`.
+  urlencode() {
+    local s="$1" out="" c i
+    for (( i=0; i<${#s}; i++ )); do
+      c="${s:i:1}"
+      case "$c" in
+        [a-zA-Z0-9.~_-]) out+="$c" ;;
+        *)               out+="$(printf '%%%02X' "'$c")" ;;
+      esac
+    done
+    printf '%s' "$out"
+  }
+  mount_smbfs "//$(urlencode "$USER_NAME"):$(urlencode "$PASS")@${SERVER}/$(urlencode "$SHARE")" "$MOUNT"
 else
   command -v mount.cifs >/dev/null 2>&1 || {
     echo "cifs-utils not installed. Install it: sudo dnf install cifs-utils  (or apt)" >&2
     exit 1
   }
+  # The share name is passed as one quoted argument, so a space in it is fine here.
   sudo mount -t cifs "//${SERVER}/${SHARE}" "$MOUNT" \
     -o "username=${USER_NAME},password=${PASS},uid=$(id -u),gid=$(id -g),vers=3.0"
 fi
