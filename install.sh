@@ -114,6 +114,8 @@ link "$DOTFILES/bin/clip2forge" "$HOME/.local/bin/clip2forge"
 chmod +x "$DOTFILES/bin/clip2forge"
 link "$DOTFILES/bin/mount-excemca" "$HOME/.local/bin/mount-excemca"
 chmod +x "$DOTFILES/bin/mount-excemca"
+link "$DOTFILES/bin/herdr-update" "$HOME/.local/bin/herdr-update"
+chmod +x "$DOTFILES/bin/herdr-update"
 
 # --- 5. History file -----------------------------------------------------------------
 touch "$HOME/.zsh_history" && chmod 600 "$HOME/.zsh_history"

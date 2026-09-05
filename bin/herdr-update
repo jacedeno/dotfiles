@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Update herdr from inside a herdr pane -- which, with alacritty.toml setting
+# terminal.shell = herdr, is every terminal on this desktop.
+#
+# Plain `herdr update` bails with "run `herdr update` outside herdr after
+# detaching from the session". That guard only looks at the HERDR_* environment
+# variables the client exports into its panes, so this script strips them and
+# runs the update with --handoff: herdr installs the new binary, starts a
+# replacement server from it, hands the live panes over, and retires the old
+# server. Pane processes keep running -- including a `claude` session doing the
+# update. Verified on BD-1, 0.8.0 -> 0.8.2 (2026-09-05).
+#
+# Afterwards herdr wants its agent integrations reinstalled (the hook scripts are
+# versioned with the binary), so this refreshes whichever ones are present.
+#
+# GeekForge runs herdr under systemd + ttyd and is updated over SSH instead --
+# see geeklab-infra -> docs/geekforge-herdr-terminal.md.
+#
+# Usage:
+#   herdr-update            # update to the latest release on the current channel
+#   herdr-update --check    # only show installed vs available, change nothing
+set -euo pipefail
+
+herdr_bin="$(command -v herdr || true)"
+[ -n "$herdr_bin" ] || herdr_bin="$HOME/.local/bin/herdr"
+[ -x "$herdr_bin" ] || { echo "herdr-update: herdr not found (looked in PATH and ~/.local/bin)" >&2; exit 1; }
+
+# Build the `env -u` list from whatever HERDR_* is actually set, so new variables
+# in future herdr releases are covered too.
+unset_args=()
+while IFS='=' read -r name _; do
+  unset_args+=(-u "$name")
+done < <(env | grep -E '^HERDR_[A-Za-z0-9_]*=' || true)
+
+run_outside() { env "${unset_args[@]}" "$herdr_bin" "$@"; }
+
+if [ "${1:-}" = "--check" ]; then
+  run_outside status
+  exit 0
+fi
+
+# --handoff only means something when a server is running; without one a plain
+# update is the right call (and --handoff would complain about no server).
+flags=()
+if run_outside status 2>/dev/null | grep -q 'status: running'; then
+  flags+=(--handoff)
+fi
+
+run_outside update "${flags[@]}" </dev/null
+
+# Agent hooks: reinstall the ones this machine has, matching what herdr asks for
+# after an update ("installed herdr integrations need updating").
+[ -f "$HOME/.claude/hooks/herdr-agent-state.sh" ] && run_outside integration install claude
+[ -f "$HOME/.gemini/config/hooks/herdr-agent-state.sh" ] && run_outside integration install antigravity-cli
+
+echo
+run_outside status

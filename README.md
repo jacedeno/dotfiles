@@ -67,6 +67,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
+├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
 │   ├── gimble.md             # Chromebook + MrChromebox running Fedora — Alacritty+herdr, default terminal
@@ -101,6 +102,16 @@ What the repo config binds directly:
 | Right click | Paste |
 
 To get a plain zsh with no herdr in the way: `alacritty -e /usr/bin/zsh`.
+
+### Updating herdr
+
+`herdr update` refuses to run from inside a herdr pane, and with
+`terminal.shell = herdr` every Alacritty window *is* one. Run `herdr-update`
+(from `bin/`, on `~/.local/bin`) instead. It strips the `HERDR_*` variables the
+guard looks at, updates with `--handoff` so the running server hands its live
+panes to the new binary (nothing is killed, not even a `claude` session doing
+the update), then reinstalls the agent hooks herdr asks for and prints
+`herdr status`. `herdr-update --check` only compares versions.
 
 **Copying out of a full-screen TUI** (claude, vim, k9s) needs one of these: the app
 captures the mouse, so dragging selects nothing. Either hold **Shift while dragging**
