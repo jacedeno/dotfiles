@@ -101,5 +101,7 @@ so `E` is the predictable choice. Set `EDITOR` in `~/.zshrc.local` to change it.
 ### Notes
 
 - Python-based, so it takes a moment to start. Fine on every machine here.
-- `ranger --copy-config=rc` writes an editable `~/.config/ranger/rc.conf` if you ever
-  want custom keys. Not done anywhere yet; the defaults are enough.
+- `ranger/rc.conf` in this repo (linked to `~/.config/ranger/rc.conf` by `install.sh`)
+  holds the only override: `set vcs_aware true`, so inside a git repo each file shows
+  its status (modified, untracked, staged) and the status bar shows the last commit
+  message. ranger loads its own defaults first, so the file stays tiny.

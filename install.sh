@@ -70,6 +70,7 @@ link "$DOTFILES/zsh/.zshrc"        "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig"    "$HOME/.gitconfig"
 link "$DOTFILES/git/hooks"         "$HOME/.config/git/hooks"
 chmod +x "$DOTFILES/git/hooks/"*
+link "$DOTFILES/ranger/rc.conf"    "$HOME/.config/ranger/rc.conf"
 if command -v alacritty >/dev/null 2>&1; then
   link "$DOTFILES/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
 fi

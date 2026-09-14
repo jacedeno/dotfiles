@@ -35,6 +35,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `zsh/.zshrc` | `~/.zshrc` |
    | `git/.gitconfig` | `~/.gitconfig` |
    | `git/hooks` | `~/.config/git/hooks` (global `core.hooksPath`; `commit-msg` rejects AI attribution) |
+   | `ranger/rc.conf` | `~/.config/ranger/rc.conf` (overrides only: git status shown next to files) |
    | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
    | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
@@ -65,6 +66,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
 ├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
+├── ranger/rc.conf            # ranger overrides only — git status next to files (vcs_aware)
 ├── docs/
 │   └── ranger.md             # tree + ranger: browsing files as a hierarchy in the terminal, keys and usage
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
