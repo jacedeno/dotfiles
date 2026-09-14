@@ -1,0 +1,367 @@
+<title>Ranger Keymap</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper:   #eff1f4;
+    --surface: #fbfbfd;
+    --ink:     #181a20;
+    --soft:    #5b626c;
+    --line:    #d6dae0;
+    --accent:  #0f6e77;
+    --wash:    #dceef0;
+    --danger:  #a33a1e;
+    --danger-wash: #f7e4dd;
+    --key-bg:  #ffffff;
+    --key-line:#c5cbd4;
+    --shadow:  0 1px 2px rgba(20,26,34,.06), 0 8px 24px -16px rgba(20,26,34,.32);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:   #101317;
+      --surface: #171b21;
+      --ink:     #e5e9ef;
+      --soft:    #939cA8;
+      --line:    #29303a;
+      --accent:  #6ec8ce;
+      --wash:    #113239;
+      --danger:  #ff9a78;
+      --danger-wash: #3a1f18;
+      --key-bg:  #1d232b;
+      --key-line:#39424e;
+      --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:   #101317;
+    --surface: #171b21;
+    --ink:     #e5e9ef;
+    --soft:    #939ca8;
+    --line:    #29303a;
+    --accent:  #6ec8ce;
+    --wash:    #113239;
+    --danger:  #ff9a78;
+    --danger-wash: #3a1f18;
+    --key-bg:  #1d232b;
+    --key-line:#39424e;
+    --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 34px 64px;
+  }
+  h1, h2, h3, .eyebrow { font-family: Archivo, system-ui, sans-serif; text-wrap: balance; }
+  code, kbd, .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  /* ---------- header ---------- */
+  header { display: flex; flex-direction: column; gap: 14px; }
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-size: clamp(30px, 6vw, 44px); font-weight: 700; letter-spacing: -.02em;
+    margin: 0; line-height: 1.05;
+  }
+  h1 .dim { color: var(--soft); font-weight: 500; }
+  .lede { margin: 0; max-width: 62ch; color: var(--soft); }
+  .lede strong { color: var(--ink); font-weight: 500; }
+
+  .launch {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface); font-size: 13px;
+  }
+  .launch code { color: var(--accent); font-weight: 500; }
+  .launch span { color: var(--soft); }
+
+  /* ---------- miller columns ---------- */
+  .millerScroll { overflow-x: auto; margin-block: 30px 8px; }
+  .miller {
+    min-width: 580px; display: grid; grid-template-columns: .8fr 1.1fr 1.5fr;
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    background: var(--surface); box-shadow: var(--shadow);
+    font-family: "IBM Plex Mono", monospace; font-size: 12.5px;
+  }
+  .col { padding: 10px 0; border-right: 1px solid var(--line); }
+  .col:last-child { border-right: 0; }
+  .colhead {
+    font-family: Archivo, sans-serif; font-size: 10px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--soft);
+    padding: 0 12px 8px;
+  }
+  .row { padding: 2px 12px; display: flex; gap: 8px; white-space: nowrap; }
+  .row .vcs { width: 1ch; color: var(--accent); }
+  .row.dir { color: var(--accent); font-weight: 500; }
+  .row.sel { background: var(--wash); color: var(--ink); }
+  .row.mod .vcs { color: var(--danger); }
+  .preview { padding: 0 12px; color: var(--soft); white-space: pre; line-height: 1.5; }
+  .preview .h { color: var(--ink); font-weight: 600; }
+  .caption { color: var(--soft); font-size: 12.5px; margin: 0 0 34px; }
+  .caption code { font-size: 12px; }
+
+  /* ---------- layout ---------- */
+  .main { display: grid; grid-template-columns: 1fr; gap: 26px; }
+  @media (min-width: 900px) { .main { grid-template-columns: 172px 1fr; gap: 40px; } }
+
+  nav { position: sticky; top: 20px; align-self: start; }
+  .navlist { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+  @media (min-width: 900px) { .navlist { flex-direction: column; flex-wrap: nowrap; } }
+  .navlist a {
+    display: block; padding: 4px 9px; border-radius: 5px; text-decoration: none;
+    color: var(--soft); font-size: 12.5px; font-family: Archivo, sans-serif; font-weight: 500;
+  }
+  .navlist a:hover { background: var(--wash); color: var(--accent); }
+  .navlist a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .filterwrap { margin-bottom: 22px; }
+  .filter {
+    width: 100%; max-width: 340px; padding: 8px 11px;
+    border: 1px solid var(--key-line); border-radius: 7px;
+    background: var(--surface); color: var(--ink);
+    font-family: "IBM Plex Mono", monospace; font-size: 13px;
+  }
+  .filter:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .empty { color: var(--soft); font-size: 13px; margin-top: 14px; }
+
+  section { margin-bottom: 30px; scroll-margin-top: 20px; }
+  h2 {
+    font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--soft); margin: 0 0 4px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .note { color: var(--soft); font-size: 13px; margin: 10px 0 0; max-width: 64ch; }
+
+  .keys { display: grid; }
+  .k {
+    display: grid; grid-template-columns: 104px 1fr; gap: 4px 14px;
+    padding: 9px 0 9px 10px; border-bottom: 1px solid var(--line); align-items: baseline;
+  }
+  .k:last-child { border-bottom: 0; }
+  @media (max-width: 460px) { .k { grid-template-columns: 1fr; padding-left: 10px; } }
+  kbd {
+    display: inline-block; padding: 2px 7px; border: 1px solid var(--key-line);
+    border-bottom-width: 2px; border-radius: 5px; background: var(--key-bg);
+    font-size: 12.5px; font-weight: 500; color: var(--ink); white-space: nowrap;
+  }
+  .k .desc { color: var(--ink); }
+  .k .desc em { color: var(--soft); font-style: normal; }
+  .k.warn { background: var(--danger-wash); border-left: 3px solid var(--danger); border-radius: 0 5px 5px 0; }
+  .k.warn kbd { border-color: var(--danger); color: var(--danger); }
+  .k.warn .desc strong { color: var(--danger); font-weight: 600; }
+
+  .cmdblock {
+    margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface); font-family: "IBM Plex Mono", monospace; font-size: 12.5px;
+    overflow-x: auto; line-height: 1.8;
+  }
+  .cmdblock .c { color: var(--soft); }
+
+  footer {
+    margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line);
+    color: var(--soft); font-size: 12.5px; display: grid; gap: 6px;
+  }
+  footer code { color: var(--ink); font-size: 12px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Terminal file manager &middot; ranger 1.9.4</p>
+    <h1>ranger <span class="dim">keymap</span></h1>
+    <p class="lede">Three columns: the folder above, the folder you are in, and a preview of
+      whatever the cursor is on. Keys are vim's &mdash; <strong>h j k l</strong> to move,
+      <strong>y</strong> to copy, <strong>d</strong> to cut. Commands that start with
+      <code>:</code> go to ranger's own command line: press <code>:</code>, type the rest, Enter.</p>
+    <div class="launch">
+      <code>cd ~/repos/runbook &amp;&amp; ranger</code>
+      <span>Needs the whole screen &mdash; leave Claude Code first, or open a second herdr pane.</span>
+    </div>
+  </header>
+
+  <div class="millerScroll">
+    <div class="miller">
+      <div class="col">
+        <p class="colhead">Parent</p>
+        <div class="row dir"><span class="vcs"></span>dotfiles</div>
+        <div class="row dir"><span class="vcs"></span>geeklab-infra</div>
+        <div class="row dir sel"><span class="vcs"></span>runbook</div>
+        <div class="row dir"><span class="vcs"></span>thetaforge</div>
+      </div>
+      <div class="col">
+        <p class="colhead">Current &mdash; ~/repos/runbook</p>
+        <div class="row dir"><span class="vcs"></span>git/</div>
+        <div class="row dir"><span class="vcs"></span>k8s/</div>
+        <div class="row dir"><span class="vcs"></span>linux/</div>
+        <div class="row dir"><span class="vcs"></span>tools/</div>
+        <div class="row sel mod"><span class="vcs">*</span>PLAN.md</div>
+        <div class="row"><span class="vcs"></span>README.md</div>
+      </div>
+      <div class="col">
+        <p class="colhead">Preview</p>
+        <div class="preview"><span class="h"># Study Plan</span>
+
+Goal: LFCS, then CKA, then
+SadServers / iximiuz Labs.
+
+<span class="h">## Ground rules</span>
+- 5 h/week. Video at 1x.
+- Study in Spanish, write in
+  English.</div>
+      </div>
+    </div>
+  </div>
+  <p class="caption">The <code>*</code> is git status, from the one override in
+    <code>~/.config/ranger/rc.conf</code>: <code>set vcs_aware true</code>. Inside a repo each
+    file shows modified / untracked / staged, and the status bar shows the last commit message.</p>
+
+  <div class="main">
+    <nav aria-label="Sections">
+      <ul class="navlist">
+        <li><a href="#move">Move around</a></li>
+        <li><a href="#create">Create</a></li>
+        <li><a href="#edit">Edit</a></li>
+        <li><a href="#transfer">Copy, move, delete</a></li>
+        <li><a href="#mark">Several at once</a></li>
+        <li><a href="#search">Search</a></li>
+        <li><a href="#shell">Shell &amp; misc</a></li>
+        <li><a href="#tree">tree</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <div class="filterwrap">
+        <label for="filter" class="eyebrow" style="display:block;margin-bottom:6px">Filter keys</label>
+        <input id="filter" class="filter" type="search" placeholder="delete, rename, hidden&hellip;" autocomplete="off">
+        <p class="empty" id="empty" hidden>No key matches that.</p>
+      </div>
+
+      <section id="move">
+        <h2>Move around</h2>
+        <div class="keys">
+          <div class="k"><span><kbd>h j k l</kbd></span><span class="desc">Move. <em>Arrows work too.</em> <kbd>l</kbd> or <kbd>Enter</kbd> opens the folder or file, <kbd>h</kbd> goes up one level</span></div>
+          <div class="k"><span><kbd>gh</kbd></span><span class="desc">Jump to <code>~</code></span></div>
+          <div class="k"><span><kbd>zh</kbd></span><span class="desc">Show or hide hidden files <em>(<code>.git</code>, <code>.env</code>)</em></span></div>
+          <div class="k"><span><kbd>zp</kbd></span><span class="desc">Show or hide the preview column</span></div>
+          <div class="k"><span><kbd>i</kbd></span><span class="desc">Selected file full screen, read-only &mdash; for long markdown. <kbd>q</kbd> comes back</span></div>
+        </div>
+      </section>
+
+      <section id="create">
+        <h2>Create</h2>
+        <div class="keys">
+          <div class="k"><span><kbd>:touch</kbd></span><span class="desc"><code>:touch notas.md</code> &mdash; new empty file in the current folder</span></div>
+          <div class="k"><span><kbd>:mkdir</kbd></span><span class="desc"><code>:mkdir borradores</code> &mdash; new folder</span></div>
+          <div class="k"><span><kbd>:edit</kbd></span><span class="desc"><code>:edit notas.md</code> &mdash; new file opened straight in nano; it is created when you save</span></div>
+        </div>
+      </section>
+
+      <section id="edit">
+        <h2>Edit</h2>
+        <div class="keys">
+          <div class="k"><span><kbd>E</kbd></span><span class="desc">Edit the selected file in nano &mdash; <kbd>Ctrl</kbd>+<kbd>O</kbd> saves, <kbd>Ctrl</kbd>+<kbd>X</kbd> returns to ranger</span></div>
+          <div class="k"><span><kbd>cw</kbd></span><span class="desc">Rename</span></div>
+        </div>
+        <p class="note"><kbd>Enter</kbd> on a text file ends up in nano too, but ranger picks the
+          program by file type, so <kbd>E</kbd> is the predictable choice. Change it by setting
+          <code>EDITOR</code> in <code>~/.zshrc.local</code>.</p>
+      </section>
+
+      <section id="transfer">
+        <h2>Copy, move, delete</h2>
+        <div class="keys">
+          <div class="k"><span><kbd>yy</kbd></span><span class="desc">Copy the selected (or marked) files</span></div>
+          <div class="k"><span><kbd>dd</kbd></span><span class="desc">Cut. <em>It does not delete</em> &mdash; it prepares the files to be moved</span></div>
+          <div class="k"><span><kbd>pp</kbd></span><span class="desc">Paste what was copied or cut, into the folder you are in</span></div>
+          <div class="k warn"><span><kbd>dD</kbd></span><span class="desc"><strong>Delete.</strong> Asks <kbd>y</kbd>/<kbd>n</kbd>. No trash: it is gone. On a folder, everything inside goes with it</span></div>
+        </div>
+      </section>
+
+      <section id="mark">
+        <h2>Several files at once</h2>
+        <div class="keys">
+          <div class="k"><span><kbd>Space</kbd></span><span class="desc">Mark the file under the cursor &mdash; repeat on each one, then <kbd>yy</kbd>, <kbd>dd</kbd> or <kbd>dD</kbd> act on all of them</span></div>
+          <div class="k"><span><kbd>v</kbd></span><span class="desc">Mark every file in the folder</span></div>
+          <div class="k"><span><kbd>uv</kbd></span><span class="desc">Clear all marks</span></div>
+        </div>
+      </section>
+
+      <section id="search">
+        <h2>Search</h2>
+        <div class="keys">
+          <div class="k"><span><kbd>/</kbd></span><span class="desc"><code>/text</code> &mdash; search by name in the current folder. <kbd>n</kbd> next match, <kbd>N</kbd> previous</span></div>
+          <div class="k"><span><kbd>f</kbd></span><span class="desc">Then type &mdash; jumps to the first file that matches as you type</span></div>
+        </div>
+      </section>
+
+      <section id="shell">
+        <h2>Shell &amp; misc</h2>
+        <div class="keys">
+          <div class="k"><span><kbd>S</kbd></span><span class="desc">Open a shell in the current folder. <code>exit</code> returns to ranger</span></div>
+          <div class="k"><span><kbd>!</kbd></span><span class="desc">Then a command &mdash; run one shell command here, without leaving ranger</span></div>
+          <div class="k"><span><kbd>Ctrl</kbd>+<kbd>R</kbd></span><span class="desc">Reset and redraw if the screen gets garbled</span></div>
+          <div class="k"><span><kbd>q</kbd></span><span class="desc">Quit</span></div>
+        </div>
+      </section>
+
+      <section id="tree">
+        <h2>tree &mdash; the static half</h2>
+        <p class="note">ranger walks the hierarchy; <code>tree</code> prints it, for pasting a repo
+          layout into a README or a commit message. Both are installed by <code>install.sh</code>
+          on Fedora and Debian/Ubuntu; on Windows they live in WSL.</p>
+        <div class="cmdblock">
+tree -L 2 -I .git      <span class="c"># two levels deep, skip .git</span>
+tree -d -I .git        <span class="c"># directories only</span>
+tree -a -I .git        <span class="c"># include dotfiles</span>
+        </div>
+        <p class="note">Without <code>-I .git</code> the <code>.git</code> internals flood the
+          output; <code>-L</code> is what keeps it readable in big repos. The last line is the
+          count &mdash; <code>11 directories, 17 files</code>.</p>
+      </section>
+
+      <footer>
+        <div>Source: <code>~/repos/dotfiles/docs/ranger.md</code> &middot; config
+          <code>ranger/rc.conf</code> &middot; install <code>install.sh</code></div>
+        <div>Keys verified against the <code>rc.conf</code> and <code>commands.py</code> shipped
+          with ranger 1.9.4. Tried and dropped 2026-09-13: nnn, mc, broot, eza.</div>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var input = document.getElementById('filter');
+    var empty = document.getElementById('empty');
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.k'));
+    var sections = Array.prototype.slice.call(document.querySelectorAll('section'));
+    rows.forEach(function (r) { r.dataset.text = r.textContent.toLowerCase(); });
+
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      var hits = 0;
+      rows.forEach(function (r) {
+        var show = !q || r.dataset.text.indexOf(q) !== -1;
+        r.hidden = !show;
+        if (show) hits++;
+      });
+      sections.forEach(function (s) {
+        var ks = s.querySelectorAll('.k');
+        if (!ks.length) { s.hidden = !!q; return; }
+        var anyVisible = Array.prototype.some.call(ks, function (k) { return !k.hidden; });
+        s.hidden = !!q && !anyVisible;
+      });
+      empty.hidden = !(q && hits === 0);
+    });
+  })();
+</script>
