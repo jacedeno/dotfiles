@@ -19,8 +19,8 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 ## What it does
 
-1. Installs packages: `zsh`, `git`, `curl`, `fzf` via `dnf`/`apt` on Linux —
-   `git`, `fzf` via `brew` on macOS (zsh and curl already ship with it), plus the
+1. Installs packages: `zsh`, `git`, `curl`, `fzf`, `tree`, `ranger` via `dnf`/`apt` on Linux —
+   `git`, `fzf`, `tree`, `ranger` via `brew` on macOS (zsh and curl already ship with it), plus the
    `font-fira-code-nerd-font` cask.
 2. Installs [Oh My Posh](https://ohmyposh.dev) (`brew` on macOS, otherwise the
    upstream installer into `~/.local/bin`) and pins the `atomic` theme locally
@@ -69,6 +69,8 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
 ├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
+├── docs/
+│   └── ranger.md             # tree + ranger: browsing files as a hierarchy in the terminal, keys and usage
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
 │   ├── gimble.md             # Chromebook + MrChromebox running Fedora — Alacritty+herdr, default terminal
 │   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap

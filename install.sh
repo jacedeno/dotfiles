@@ -31,12 +31,12 @@ fi
 log "Installing packages..."
 if $IS_MACOS; then
   # zsh and curl ship with macOS (brew's curl is keg-only and isn't even linked),
-  # so only git/fzf/oh-my-posh are needed. The Nerd Font is a cask; on Linux it
+  # so only git/fzf/tree/ranger/oh-my-posh are needed. The Nerd Font is a cask; on Linux it
   # comes from nerdfonts.com and isn't managed here.
   # Guard each one: `brew install` on an already-installed cask is a non-zero
   # failure under `set -e`. --formula is required for oh-my-posh: the upstream
   # tap ships a same-named cask that otherwise wins and fails as untrusted.
-  for formula in git fzf oh-my-posh; do
+  for formula in git fzf tree ranger oh-my-posh; do
     brew list --formula "$formula" >/dev/null 2>&1 \
       && log "$formula already installed." \
       || brew install --formula "$formula"
@@ -47,11 +47,11 @@ if $IS_MACOS; then
       || brew install --cask "$cask"
   done
 elif command -v dnf >/dev/null 2>&1; then
-  sudo dnf install -y zsh git curl fzf unzip
+  sudo dnf install -y zsh git curl fzf unzip tree ranger
 elif command -v apt >/dev/null 2>&1; then
-  sudo apt update && sudo apt install -y zsh git curl fzf unzip
+  sudo apt update && sudo apt install -y zsh git curl fzf unzip tree ranger
 else
-  warn "No brew/dnf/apt found — install zsh, git, curl, fzf manually."
+  warn "No brew/dnf/apt found — install zsh, git, curl, fzf, tree, ranger manually."
 fi
 
 # --- 2. Oh My Posh --------------------------------------------------------------
