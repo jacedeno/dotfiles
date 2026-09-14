@@ -47,7 +47,7 @@ Defaults, verified against the `rc.conf` shipped with ranger 1.9.4.
 | `yy` / `dd` / `pp` | copy / cut / paste the selected or marked files |
 | `cw` | rename |
 | `dD` | delete (asks for confirmation) |
-| `:` | ranger command line (`:mkdir name`, `:touch name`) |
+| `:` | ranger command line: `:touch name.md` new empty file, `:mkdir name` new folder, `:edit name.md` new file straight into `nano` |
 | `!` | run a shell command in the current directory |
 | `Ctrl+R` | reset and redraw if the screen gets garbled |
 | `q` | quit |

@@ -15,3 +15,7 @@
 	# Global hooks: dotfiles/git/hooks (commit-msg rejects AI attribution).
 	# Linked to ~/.config/git/hooks by install.sh; ~ works cross-platform.
 	hooksPath = ~/.config/git/hooks
+[alias]
+	st = status
+	lg = log --oneline --graph --all
+	s = status -sb
