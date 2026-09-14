@@ -7,7 +7,7 @@
   profile at the repo config.
 
   No terminal emulator is installed: Windows Terminal ships with Windows, and
-  the repo's terminal config (Alacritty) is Linux/macOS only.
+  the repo's terminal config (Alacritty) is Linux only.
 
   The *shell* on Windows is WSL — it runs the exact same zsh + dotfiles as the
   Linux machines. After this script:

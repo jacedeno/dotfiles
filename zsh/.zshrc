@@ -1,16 +1,8 @@
 # ==============================================================================
 # ~/.zshrc — jacedeno dotfiles
-# Portable across Fedora / Debian / Ubuntu / macOS. Machine-specific settings go
+# Portable across Fedora / Debian / Ubuntu. Machine-specific settings go
 # in ~/.zshrc.local (sourced at the end, never committed).
 # ==============================================================================
-
-# --- Homebrew (macOS) ---------------------------------------------------------
-# Sets PATH/MANPATH/INFOPATH for brew. Runs first so ~/.local/bin still wins below.
-# Apple Silicon lives in /opt/homebrew, Intel in /usr/local.
-for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
-  [ -x "$brew_bin" ] && eval "$("$brew_bin" shellenv)" && break
-done
-unset brew_bin
 
 # --- PATH -------------------------------------------------------------------
 export PATH="$HOME/.local/bin:$HOME/bin:/usr/local/bin:$PATH"
@@ -78,8 +70,7 @@ alias ...="cd ../.."
 alias ....="cd ../../.."
 
 # --- Aliases: listing -----------------------------------------------------------
-# GNU ls takes --color=auto; BSD ls (macOS) takes -G. Recent macOS ls understands
-# --color too, so probe instead of assuming by platform.
+# GNU ls takes --color=auto; BSD ls takes -G. Probe instead of assuming.
 if ls --color=auto . >/dev/null 2>&1; then
   _ls_color="--color=auto"
 else
@@ -92,7 +83,7 @@ unset _ls_color
 
 # --- Aliases: package manager (per platform) ------------------------------------
 # The native manager wins: a Linux box running Linuxbrew alongside dnf/apt should
-# still get dnf/apt here. brew is the fallback, which is what macOS lands on.
+# still get dnf/apt here. brew stays as a last-resort fallback.
 if command -v dnf >/dev/null 2>&1; then
   alias pkgu="sudo dnf upgrade --refresh"
   alias pkgi="sudo dnf install"
@@ -122,7 +113,7 @@ fi
 # --- Aliases: system utilities --------------------------------------------------
 alias cls="clear"
 alias myip="curl -s ifconfig.me && echo"
-# ss is iproute2 (Linux only); macOS gets the closest lsof equivalent.
+# ss is iproute2; lsof is the closest equivalent where it is missing.
 if command -v ss >/dev/null 2>&1; then
   alias ports="ss -tulanp"
 else

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Mount a GeekLab SMB share (served by storage LXC CT 117 at 192.168.68.87) on this
-# desktop. Cross-platform: Linux (cifs) and macOS (mount_smbfs).
+# desktop, over cifs.
 #
 # Why this lives in dotfiles: mounting a share is per-machine client config, so it
 # travels with the desktop. The server-side facts (who may mount, how to reset the
@@ -61,22 +61,11 @@ done
 # `Family Share` -> `family-share`; `excemca` stays `excemca`.
 SLUG="$(printf '%s' "$SHARE" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/-$//')"
 
-IS_MACOS=false
-[ "$(uname -s)" = "Darwin" ] && IS_MACOS=true
-
-if $IS_MACOS; then
-  MOUNT="${EXCEMCA_MOUNT:-$HOME/mnt/$SLUG}"
-else
-  MOUNT="${EXCEMCA_MOUNT:-/mnt/$SLUG}"
-fi
+MOUNT="${EXCEMCA_MOUNT:-/mnt/$SLUG}"
 
 # --- unmount --------------------------------------------------------------------------
 if $DO_UNMOUNT; then
-  if $IS_MACOS; then
-    umount "$MOUNT"
-  else
-    sudo umount "$MOUNT"
-  fi
+  sudo umount "$MOUNT"
   echo "Unmounted $MOUNT"
   exit 0
 fi
@@ -92,29 +81,12 @@ echo
 
 mkdir -p "$MOUNT"
 
-if $IS_MACOS; then
-  # mount_smbfs takes a URL, so anything non-alphanumeric in the share name or the
-  # password has to be percent-encoded -- this is what breaks on `Family Share`.
-  urlencode() {
-    local s="$1" out="" c i
-    for (( i=0; i<${#s}; i++ )); do
-      c="${s:i:1}"
-      case "$c" in
-        [a-zA-Z0-9.~_-]) out+="$c" ;;
-        *)               out+="$(printf '%%%02X' "'$c")" ;;
-      esac
-    done
-    printf '%s' "$out"
-  }
-  mount_smbfs "//$(urlencode "$USER_NAME"):$(urlencode "$PASS")@${SERVER}/$(urlencode "$SHARE")" "$MOUNT"
-else
-  command -v mount.cifs >/dev/null 2>&1 || {
-    echo "cifs-utils not installed. Install it: sudo dnf install cifs-utils  (or apt)" >&2
-    exit 1
-  }
-  # The share name is passed as one quoted argument, so a space in it is fine here.
-  sudo mount -t cifs "//${SERVER}/${SHARE}" "$MOUNT" \
-    -o "username=${USER_NAME},password=${PASS},uid=$(id -u),gid=$(id -g),vers=3.0"
-fi
+command -v mount.cifs >/dev/null 2>&1 || {
+  echo "cifs-utils not installed. Install it: sudo dnf install cifs-utils  (or apt)" >&2
+  exit 1
+}
+# The share name is passed as one quoted argument, so a space in it is fine here.
+sudo mount -t cifs "//${SERVER}/${SHARE}" "$MOUNT" \
+  -o "username=${USER_NAME},password=${PASS},uid=$(id -u),gid=$(id -g),vers=3.0"
 
 echo "Mounted //${SERVER}/${SHARE} at $MOUNT"

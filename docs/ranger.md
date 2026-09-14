@@ -3,7 +3,7 @@
 Two tools, two jobs. `tree` prints the directory hierarchy (the VSCode explorer, static).
 `ranger` walks it: three columns (parent, current, preview of the selected file), previews
 markdown and code in place, and hands the file to `nano` when you want to edit. Both are
-installed by `install.sh` on Fedora, Debian/Ubuntu and macOS. On Windows they live in WSL.
+installed by `install.sh` on Fedora and Debian/Ubuntu. On Windows they live in WSL.
 
 Tried and discarded on 2026-09-13: `nnn`, `mc`, `broot`, `eza`. None added anything worth a
 third tool; fuzzy search is already covered by `fzf`.

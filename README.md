@@ -2,8 +2,9 @@
 
 My portable terminal environment: **zsh + Oh My Posh (atomic) + fzf + autosuggestions +
 syntax highlighting**, plus git and Alacritty configs. One command sets up any
-fresh Fedora, Debian/Ubuntu or macOS machine — and on Windows, `install.ps1` for the
-native side plus WSL for the same zsh shell.
+fresh Fedora or Debian/Ubuntu machine — and on Windows, `install.ps1` for the
+native side plus WSL for the same zsh shell. No macOS: there is no Mac in the fleet
+(support dropped 2026-09-14).
 
 ## Quick start
 
@@ -19,11 +20,10 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 ## What it does
 
-1. Installs packages: `zsh`, `git`, `curl`, `fzf`, `tree`, `ranger` via `dnf`/`apt` on Linux —
-   `git`, `fzf`, `tree`, `ranger` via `brew` on macOS (zsh and curl already ship with it), plus the
-   `font-fira-code-nerd-font` cask.
-2. Installs [Oh My Posh](https://ohmyposh.dev) (`brew` on macOS, otherwise the
-   upstream installer into `~/.local/bin`) and pins the `atomic` theme locally
+1. Installs packages: `zsh`, `git`, `curl`, `fzf`, `unzip`, `tree`, `ranger` via
+   `dnf` (Fedora) or `apt` (Debian/Ubuntu).
+2. Installs [Oh My Posh](https://ohmyposh.dev) with the upstream installer into
+   `~/.local/bin` and pins the `atomic` theme locally
    (`~/.config/ohmyposh/atomic.omp.json`) so the prompt works offline.
 3. Clones [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) and
    [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
@@ -44,14 +44,10 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    other machine-specific git settings go in `~/.gitconfig.local` (untracked), which
    the tracked `.gitconfig` includes last so its values win.
 
-### macOS notes
+### Notes
 
-- Requires [Homebrew](https://brew.sh) — the installer stops early if it's missing.
-- No terminal emulator is installed here: `install.sh` only ships the Nerd Font
-  cask, and `alacritty/alacritty.toml` is linked only if Alacritty is already
-  present. Install it yourself (`brew install --cask alacritty`) if you want it.
-- The zshrc runs `brew shellenv` before anything else, so Apple Silicon
-  (`/opt/homebrew`) and Intel (`/usr/local`) both work with no edits.
+- No terminal emulator is installed: `alacritty/alacritty.toml` is linked only if
+  Alacritty is already present.
 - Oh My Zsh is not used. If a machine already has it, `install.sh` backs up the
   old `~/.zshrc`; `~/.oh-my-zsh` is left untouched, so reverting is just a matter
   of restoring the backup.
@@ -59,13 +55,13 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ## Layout
 
 ```
-├── install.sh                # setup script (Fedora + Debian/Ubuntu + macOS)
+├── install.sh                # setup script (Fedora + Debian/Ubuntu)
 ├── install.ps1               # setup script (Windows-native: git, font, prompt, profile)
 ├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
 ├── git/.gitconfig
 ├── alacritty/alacritty.toml  # the terminal — Tokyo Night on black, launches herdr
 ├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
-├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11/macOS)
+├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11)
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
 ├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
@@ -129,13 +125,12 @@ the single most-forgotten thing in this config, which is why it is written down 
   plugins) is wrapped in existence checks, so the same zshrc works on a minimal
   server and a full workstation.
 - **Platform-neutral package aliases.** `pkgi` / `pkgu` / `pkgr` / `pkgs` map to
-  `dnf` on Fedora, `apt` on Debian/Ubuntu and `brew` on macOS.
-- **Probe, don't assume.** Where GNU and BSD userland differ, the zshrc tests the
-  tool instead of branching on the OS: `ll` uses `--color=auto` where it works and
-  falls back to BSD `-G`; `ports` uses `ss` where present, else `lsof`.
+  `dnf` on Fedora and `apt` on Debian/Ubuntu.
+- **Probe, don't assume.** The zshrc tests for a tool instead of branching on the
+  OS: `ports` uses `ss` where present, else `lsof`.
 - **Nerd Font required for the prompt glyphs.** Everything expects *FiraCode Nerd
-  Font Mono*. macOS installs it via cask; on Linux grab it from
-  [nerdfonts.com](https://www.nerdfonts.com/) if the prompt shows broken symbols.
+  Font Mono*. Grab it from [nerdfonts.com](https://www.nerdfonts.com/) if the
+  prompt shows broken symbols.
 
 ## Windows
 
