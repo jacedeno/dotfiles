@@ -30,25 +30,65 @@ It needs the whole screen: leave Claude Code first (`/exit`), or open a second h
 
 ### Keys
 
-Defaults, verified against the `rc.conf` shipped with ranger 1.9.4.
+Defaults, verified against the `rc.conf` and `commands.py` shipped with ranger 1.9.4.
+Commands that start with `:` are typed into ranger's own command line: press `:`, type
+the rest, press `Enter`.
+
+**Move around**
 
 | Key | Action |
 | :--- | :--- |
-| arrows or `h j k l` | move; `l` / `Enter` opens, `h` goes up one level |
-| `E` | edit the selected file (`nano`, unless `$EDITOR` says otherwise) |
-| `i` | selected file full screen, read-only (long markdown) |
-| `zh` | toggle hidden files (`.git`, `.env`) |
-| `zp` | toggle the preview column |
-| `S` | shell in the current directory; `exit` returns to ranger |
+| arrows or `h j k l` | move; `l` / `Enter` opens the folder or file, `h` goes up one level |
 | `gh` | jump to `~` |
-| `/` then text | search by name in the current directory; `n` / `N` next / previous match |
-| `f` then text | jump to the first file matching as you type |
-| `Space` | mark a file (repeat on others); `v` marks all, `uv` clears |
-| `yy` / `dd` / `pp` | copy / cut / paste the selected or marked files |
+| `zh` | show or hide hidden files (`.git`, `.env`) |
+| `zp` | show or hide the preview column |
+| `i` | selected file full screen, read-only (long markdown); `q` comes back |
+
+**Create**
+
+| Key | Action |
+| :--- | :--- |
+| `:touch notas.md` | new empty file in the current folder |
+| `:mkdir borradores` | new folder |
+| `:edit notas.md` | new file opened straight in `nano`; it is created when you save |
+
+**Edit**
+
+| Key | Action |
+| :--- | :--- |
+| `E` | edit the selected file in `nano` (`Ctrl+O` saves, `Ctrl+X` returns to ranger) |
 | `cw` | rename |
-| `dD` | delete (asks for confirmation) |
-| `:` | ranger command line: `:touch name.md` new empty file, `:mkdir name` new folder, `:edit name.md` new file straight into `nano` |
-| `!` | run a shell command in the current directory |
+
+**Copy, move, delete**
+
+| Key | Action |
+| :--- | :--- |
+| `yy` | copy the selected (or marked) files |
+| `dd` | cut. It does not delete: it prepares the files to be moved |
+| `pp` | paste what was copied or cut, into the folder you are in |
+| `dD` | delete. Asks `y`/`n`. No trash: it is gone. On a folder, deletes everything inside |
+
+**Several files at once**
+
+| Key | Action |
+| :--- | :--- |
+| `Space` | mark the file under the cursor (repeat on each one); then `yy`, `dd` or `dD` act on all marked |
+| `v` | mark every file in the folder |
+| `uv` | clear all marks |
+
+**Search**
+
+| Key | Action |
+| :--- | :--- |
+| `/text` | search by name in the current folder; `n` next match, `N` previous |
+| `f` then text | jump to the first file that matches as you type |
+
+**Shell and misc**
+
+| Key | Action |
+| :--- | :--- |
+| `S` | open a shell in the current folder; `exit` returns to ranger |
+| `!` then a command | run one shell command here, without leaving ranger |
 | `Ctrl+R` | reset and redraw if the screen gets garbled |
 | `q` | quit |
 
