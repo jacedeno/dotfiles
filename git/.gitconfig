@@ -19,3 +19,5 @@
 	st = status
 	lg = log --oneline --graph --all
 	s = status -sb
+[pull]
+	rebase = true
