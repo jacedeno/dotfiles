@@ -111,7 +111,9 @@ To get a plain zsh with no herdr in the way: `alacritty -e /usr/bin/zsh`.
 guard looks at, updates with `--handoff` so the running server hands its live
 panes to the new binary (nothing is killed, not even a `claude` session doing
 the update), then reinstalls the agent hooks herdr asks for and prints
-`herdr status`. `herdr-update --check` only compares versions.
+`herdr status`. `herdr-update --check` only compares versions. The `update`
+shell function (zsh/.zshrc) runs it after the package manager and
+`claude update`, so one command refreshes everything.
 
 **Copying out of a full-screen TUI** (claude, vim, k9s) needs one of these: the app
 captures the mouse, so dragging selects nothing. Either hold **Shift while dragging**

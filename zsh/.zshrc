@@ -90,7 +90,7 @@ if command -v dnf >/dev/null 2>&1; then
   alias pkgs="dnf search"
   alias pkgr="sudo dnf remove"
   alias pkgls="dnf list installed"
-  alias update="sudo dnf upgrade --refresh -y"          # one-shot: refresh + upgrade
+  _sys_update() { sudo dnf upgrade --refresh -y; }      # one-shot: refresh + upgrade
   alias clean="sudo dnf autoremove -y && sudo dnf clean all"  # drop orphans + caches
 elif command -v apt >/dev/null 2>&1; then
   alias pkgu="sudo apt update && sudo apt upgrade"
@@ -98,7 +98,7 @@ elif command -v apt >/dev/null 2>&1; then
   alias pkgs="apt search"
   alias pkgr="sudo apt remove"
   alias pkgls="apt list --installed"
-  alias update="sudo apt update && sudo apt upgrade -y"       # one-shot: refresh + upgrade
+  _sys_update() { sudo apt update && sudo apt upgrade -y; }   # one-shot: refresh + upgrade
   alias clean="sudo apt autoremove -y && sudo apt autoclean"  # drop orphans + caches
 elif command -v brew >/dev/null 2>&1; then
   alias pkgu="brew update && brew upgrade"
@@ -106,9 +106,22 @@ elif command -v brew >/dev/null 2>&1; then
   alias pkgs="brew search"
   alias pkgr="brew uninstall"
   alias pkgls="brew list"
-  alias update="brew update && brew upgrade"                  # one-shot: refresh + upgrade
+  _sys_update() { brew update && brew upgrade; }              # one-shot: refresh + upgrade
   alias clean="brew cleanup"                                  # drop old versions + caches
 fi
+
+# update: system packages + the self-updating CLIs in one shot. herdr goes
+# through bin/herdr-update, which handles the inside-a-pane guard and the
+# live server handoff; plain `herdr update` refuses to run from a pane.
+update() {
+  _sys_update
+  if command -v claude >/dev/null 2>&1; then
+    echo "\n==> claude update"; claude update
+  fi
+  if command -v herdr-update >/dev/null 2>&1; then
+    echo "\n==> herdr-update"; herdr-update
+  fi
+}
 
 # --- Aliases: system utilities --------------------------------------------------
 alias cls="clear"
