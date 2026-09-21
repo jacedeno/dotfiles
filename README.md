@@ -40,6 +40,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
    | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
+   | `claude/statusline.py` | `~/.claude/statusline/statusline.py` — Claude Code's status line; `install.sh` also adds the `statusLine` key to `~/.claude/settings.json` if it is missing (see [Claude Code status line](#claude-code-status-line)) |
 
 5. Creates an empty `~/.zshrc.local` for machine-specific config. Git identity and
    other machine-specific git settings go in `~/.gitconfig.local` (untracked), which
@@ -65,6 +66,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11)
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
 ├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
+├── claude/statusline.py      # Claude Code status line — model, effort, repo/branch, context bar, cost, cache, rate limits
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── ranger/rc.conf            # ranger overrides only — git status next to files (vcs_aware)
 ├── docs/
@@ -119,6 +121,46 @@ shell function (zsh/.zshrc) runs it after the package manager and
 captures the mouse, so dragging selects nothing. Either hold **Shift while dragging**
 to bypass mouse reporting, or skip the mouse entirely with `Ctrl+Shift+K`. This is
 the single most-forgotten thing in this config, which is why it is written down here.
+
+## Claude Code status line
+
+The three rows under Claude Code's prompt are not a built-in: they come from
+`claude/statusline.py`, which Claude Code runs on every refresh with the session
+JSON on stdin. It was written on GeekForge (2026-09-10) and moved here on
+2026-09-21 so every machine shows the same thing.
+
+| Row | Contents |
+| :--- | :--- |
+| 1 | Model, effort level, `[fast/think]` tags, `owner/repo` (or the cwd basename outside a repo), git branch with `+staged ~dirty` or `clean` |
+| 2 | Context bar and percentage (green → yellow at 70% → red at 90%), tokens in context / window size, session cost in USD, wall time and API time, `+lines/-lines` when there are edits |
+| 3 | Prompt cache (`warm`/`cold`, hit ratio, TTL) and the 5-hour / 7-day rate limits with time to reset |
+
+`install.sh` symlinks the script to `~/.claude/statusline/statusline.py` and, if
+`~/.claude/settings.json` has no `statusLine` key yet, adds this one (other keys
+are untouched; an existing `statusLine` is never replaced):
+
+```json
+"statusLine": {
+  "type": "command",
+  "command": "/home/<user>/.claude/statusline/statusline.py",
+  "padding": 0,
+  "refreshInterval": 60
+}
+```
+
+Notes:
+
+- Needs `python3` only — no packages. `git status` is cached for 5 s in
+  `/tmp/claude-1000/statusline-git.cache` because it is slow on big repos.
+- Secondary text uses plain white (`\033[37m`), not ANSI dim: dim is nearly
+  invisible on the dark theme. Bump to `\033[97m` if it still reads too faint.
+- To try a change without a live session, feed it a saved payload:
+  `./claude/statusline.py < payload.json`. To capture one, point `statusLine.command`
+  at a wrapper like `tee /tmp/payload.json | ~/.claude/statusline/statusline.py`
+  for a session, then switch it back.
+- Row 2's token count is what the conversation occupies *now*, not the session
+  total. Row 3's segments appear only when the payload carries them (older
+  Claude Code versions send no `prompt_cache` or `rate_limits`).
 
 ## Design notes
 

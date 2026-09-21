@@ -88,6 +88,38 @@ chmod +x "$DOTFILES/bin/mount-excemca"
 link "$DOTFILES/bin/herdr-update" "$HOME/.local/bin/herdr-update"
 chmod +x "$DOTFILES/bin/herdr-update"
 
+# --- 4b. Claude Code status line ---------------------------------------------------
+# The rows under Claude Code's prompt (model, effort, repo, branch, context bar,
+# cost, cache, rate limits) come from claude/statusline.py. Claude Code only runs
+# it if ~/.claude/settings.json names it under "statusLine", so besides the
+# symlink we add that key when it is missing. Existing keys are never touched,
+# and an existing "statusLine" (even a different one) is left alone.
+link "$DOTFILES/claude/statusline.py" "$HOME/.claude/statusline/statusline.py"
+chmod +x "$DOTFILES/claude/statusline.py"
+if command -v python3 >/dev/null 2>&1; then
+  python3 - "$HOME/.claude/settings.json" "$HOME/.claude/statusline/statusline.py" <<'EOF'
+import json, os, sys
+path, script = sys.argv[1], sys.argv[2]
+try:
+    with open(path) as f:
+        cfg = json.load(f)
+except FileNotFoundError:
+    cfg = {}
+if "statusLine" in cfg:
+    print(f"\033[1;32m[dotfiles]\033[0m OK: statusLine already set in {path}")
+    sys.exit(0)
+cfg["statusLine"] = {"type": "command", "command": script,
+                     "padding": 0, "refreshInterval": 60}
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "w") as f:
+    json.dump(cfg, f, indent=2)
+    f.write("\n")
+print(f"\033[1;32m[dotfiles]\033[0m Added statusLine to {path}")
+EOF
+else
+  warn "python3 not found — statusline.py needs it; skipped the settings.json edit."
+fi
+
 # --- 5. History file -----------------------------------------------------------------
 touch "$HOME/.zsh_history" && chmod 600 "$HOME/.zsh_history"
 
