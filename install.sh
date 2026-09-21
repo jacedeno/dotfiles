@@ -26,7 +26,10 @@ else
 fi
 
 # --- 2. Oh My Posh --------------------------------------------------------------
-if ! command -v oh-my-posh >/dev/null 2>&1; then
+# Check the install path too, not just PATH: a non-interactive shell (ssh host
+# ./install.sh) has no ~/.local/bin on PATH, and the bare `command -v` check
+# used to re-download the binary on every such run.
+if ! command -v oh-my-posh >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/oh-my-posh" ]; then
   log "Installing Oh My Posh to ~/.local/bin..."
   mkdir -p "$HOME/.local/bin"
   curl -s https://ohmyposh.dev/install.sh | bash -s -- -d "$HOME/.local/bin"
