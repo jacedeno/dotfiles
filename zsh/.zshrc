@@ -110,11 +110,30 @@ elif command -v brew >/dev/null 2>&1; then
   alias clean="brew cleanup"                                  # drop old versions + caches
 fi
 
-# update: system packages + the self-updating CLIs in one shot. herdr goes
-# through bin/herdr-update, which handles the inside-a-pane guard and the
-# live server handoff; plain `herdr update` refuses to run from a pane.
+# update: system packages + everything installed outside the package manager,
+# in one shot: Oh My Posh, the zsh plugins (git clones), claude and herdr.
+# herdr goes through bin/herdr-update, which handles the inside-a-pane guard
+# and the live server handoff; plain `herdr update` refuses to run from a pane.
 update() {
   _sys_update
+  if command -v oh-my-posh >/dev/null 2>&1; then
+    echo "\n==> oh-my-posh upgrade"
+    # Minor/patch bumps just happen. A major bump only prints a warning and
+    # asks for --force, and --force is a silent no-op (seen on 29.6.1 ->
+    # 31.3.0, 2026-09-21), so on that warning we rerun the official installer
+    # into ~/.local/bin — the same thing install.sh does on a fresh machine.
+    local omp_out; omp_out="$(oh-my-posh upgrade 2>&1)"; echo "$omp_out"
+    if [[ "$omp_out" == *"major upgrade available"* ]]; then
+      echo "major bump: reinstalling via the official installer"
+      curl -s https://ohmyposh.dev/install.sh | bash -s -- -d "$HOME/.local/bin"
+      echo "oh-my-posh now $(oh-my-posh version)"
+    fi
+  fi
+  local plugin
+  for plugin in "$HOME"/.zsh/plugins/*/.git; do
+    [ -d "$plugin" ] || continue
+    echo "\n==> git pull $(basename "${plugin:h}")"; git -C "${plugin:h}" pull --ff-only -q && echo "up to date: $(git -C "${plugin:h}" log --oneline -1)"
+  done
   if command -v claude >/dev/null 2>&1; then
     echo "\n==> claude update"; claude update
   fi
