@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Status line para Claude Code. Lee el JSON de sesion por stdin y pinta dos filas."""
+"""Status line for Claude Code: reads the session JSON on stdin, prints the rows.
+
+Rows 1 and 2 always print; row 3 only when the session carries prompt-cache or
+rate-limit data.
+"""
 import json, os, subprocess, sys, time
 
 R = "\033[0m"; B = "\033[1m"
-# Texto secundario (etiquetas, unidades). NO uses "\033[2m" (dim): sobre un tema
-# oscuro queda casi invisible. "\033[37m" es el blanco normal del terminal; si aun
-# asi lo quieres mas fuerte, sube a "\033[97m" (blanco brillante).
+# Secondary text (labels, units). Do NOT use "\033[2m" (dim): on a dark theme it is
+# nearly invisible. "\033[37m" is the terminal's normal white; if that still reads
+# too faint, go up to "\033[97m" (bright white).
 DIM = "\033[37m"
 GRN = "\033[32m"; YLW = "\033[33m"; RED = "\033[31m"
 CYN = "\033[36m"; MAG = "\033[35m"; BLU = "\033[34m"
@@ -18,7 +22,7 @@ def sh(args, cwd):
         return ""
 
 def git_segment(cwd):
-    """Rama + contadores. Cacheado 5 s: git status es caro en repos grandes."""
+    """Branch + counters. Cached for 5 s: git status is expensive in large repos."""
     cache = "/tmp/claude-1000/statusline-git.cache"
     try:
         if time.time() - os.path.getmtime(cache) < 5:
@@ -72,7 +76,7 @@ def reset_in(epoch):
 d = json.load(sys.stdin)
 cwd = d.get("workspace", {}).get("current_dir") or d.get("cwd") or "."
 
-# --- fila 1: identidad -------------------------------------------------------
+# --- row 1: identity ---------------------------------------------------------
 model = d.get("model", {}).get("display_name", "?")
 effort = d.get("effort", {}).get("level", "")
 tags = []
@@ -90,11 +94,11 @@ git = git_segment(cwd)
 if git:
     row1 += f"  {git}"
 
-# --- fila 2: consumo ---------------------------------------------------------
+# --- row 2: consumption ------------------------------------------------------
 ctx = d.get("context_window", {})
 pct = ctx.get("used_percentage", 0)
 size = ctx.get("context_window_size", 0)
-# Ojo: es lo que ocupa la conversacion AHORA, no el acumulado de la sesion.
+# Note: this is what the conversation holds RIGHT NOW, not the session total.
 in_ctx = ctx.get("total_input_tokens", 0)
 c = hue(pct)
 
@@ -112,7 +116,7 @@ row2 = (f"{c}{bar(pct)}{R} {c}{pct}%{R} {DIM}ctx{R} {human(in_ctx)}{DIM}/{human(
 if plus or minus:
     row2 += f"  {GRN}+{plus}{R}/{RED}-{minus}{R}"
 
-# --- fila 3: cache y cuotas --------------------------------------------------
+# --- row 3: cache and quotas -------------------------------------------------
 pc = d.get("prompt_cache", {})
 bits = []
 if pc.get("caching_observed"):
