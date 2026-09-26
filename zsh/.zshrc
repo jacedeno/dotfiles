@@ -91,7 +91,7 @@ if command -v dnf >/dev/null 2>&1; then
   alias pkgr="sudo dnf remove"
   alias pkgls="dnf list installed"
   _sys_update() { sudo dnf upgrade --refresh -y; }      # one-shot: refresh + upgrade
-  alias clean="sudo dnf autoremove -y && sudo dnf clean all"  # drop orphans + caches
+  _sys_clean() { sudo dnf autoremove -y && sudo dnf clean all; }  # orphans + caches
 elif command -v apt >/dev/null 2>&1; then
   alias pkgu="sudo apt update && sudo apt upgrade"
   alias pkgi="sudo apt install"
@@ -99,7 +99,12 @@ elif command -v apt >/dev/null 2>&1; then
   alias pkgr="sudo apt remove"
   alias pkgls="apt list --installed"
   _sys_update() { sudo apt update && sudo apt upgrade -y; }   # one-shot: refresh + upgrade
-  alias clean="sudo apt autoremove -y && sudo apt autoclean"  # drop orphans + caches
+  # rc = removed but config left behind; old kernels pile up here (16 on GeekForge).
+  _sys_clean() {
+    sudo apt autoremove --purge -y && sudo apt autoclean
+    local rc; rc=(${(f)"$(dpkg -l | awk '/^rc/{print $2}')"})
+    (( $#rc )) && sudo dpkg --purge "${rc[@]}"
+  }
 elif command -v brew >/dev/null 2>&1; then
   alias pkgu="brew update && brew upgrade"
   alias pkgi="brew install"
@@ -107,7 +112,7 @@ elif command -v brew >/dev/null 2>&1; then
   alias pkgr="brew uninstall"
   alias pkgls="brew list"
   _sys_update() { brew update && brew upgrade; }              # one-shot: refresh + upgrade
-  alias clean="brew cleanup"                                  # drop old versions + caches
+  _sys_clean() { brew cleanup; }                              # old versions + caches
 fi
 
 # update: system packages + everything installed outside the package manager,
@@ -143,6 +148,71 @@ update() {
   if command -v herdr-update >/dev/null 2>&1; then
     echo "\n==> herdr-update"; herdr-update
   fi
+}
+
+# clean: package orphans and caches, then what update and the tools it drives
+# leave behind. Everything deleted is regenerable or already dead. What holds
+# history (Claude transcripts + memory of a deleted repo, the trash) is only
+# reported, never removed.
+clean() {
+  local before; before=$(df -k --output=avail "$HOME" | tail -1)
+  _sys_clean
+  if command -v flatpak >/dev/null 2>&1; then
+    echo "\n==> flatpak unused runtimes"; flatpak uninstall --unused -y
+  fi
+  echo "\n==> journal older than 4 weeks"; sudo journalctl --vacuum-time=4weeks
+  local c
+  for c in docker podman; do
+    command -v $c >/dev/null 2>&1 && $c info >/dev/null 2>&1 || continue
+    echo "\n==> $c dangling images"; $c image prune -f
+  done
+
+  echo "\n==> tool caches"
+  command -v uv >/dev/null 2>&1 && uv cache prune
+  command -v pip >/dev/null 2>&1 && pip cache purge
+  command -v go >/dev/null 2>&1 && go clean -cache && echo "go build cache cleared"
+  command -v pnpm >/dev/null 2>&1 && pnpm store prune
+  command -v npm >/dev/null 2>&1 && npm cache verify >/dev/null && echo "npm cache garbage-collected"
+  # One init script per config hash, never pruned by oh-my-posh itself.
+  if [ -d "$HOME/.cache/oh-my-posh" ]; then
+    echo "oh-my-posh: $(find "$HOME/.cache/oh-my-posh" -name 'init.*' -mtime +7 -delete -print | wc -l) stale init scripts removed"
+  fi
+
+  # Keep the version ~/.local/bin/claude points at plus the newest other one,
+  # so a rollback is still one symlink away.
+  local vdir="$HOME/.local/share/claude/versions"
+  if [ -d "$vdir" ] && [ -L "$HOME/.local/bin/claude" ]; then
+    local cur prev v; cur=${$(readlink -f "$HOME/.local/bin/claude"):t}
+    prev=$(ls -v "$vdir" | grep -vxF "$cur" | tail -1)
+    echo "\n==> claude versions (keeping $cur${prev:+ and $prev})"
+    for v in "$vdir"/*(N); do
+      [[ ${v:t} == "$cur" || ${v:t} == "$prev" ]] && continue
+      rm -rf -- "$v" && echo "removed ${v:t}"
+    done
+  fi
+
+  # Self-updaters (agy, herdr) leave the replaced binary as *.old / *.bak;
+  # (-@) is a symlink whose target is gone.
+  echo "\n==> ~/.local/bin leftovers"
+  local f
+  for f in "$HOME"/.local/bin/*.(old|bak)(N) "$HOME"/.local/bin/*(N-@); do
+    rm -f -- "$f" && echo "removed ${f:t}"
+  done
+
+  echo "\n==> claude projects whose directory is gone (not removed: transcripts + memory)"
+  local d j cwd
+  for d in "$HOME"/.claude/projects/*(N/); do
+    j=("$d"/*.jsonl(N.om[1])); (( $#j )) || continue
+    cwd=$(grep -m1 -o '"cwd":"[^"]*"' "$j[1]" | cut -d'"' -f4)
+    [[ -n $cwd && ! -d $cwd ]] && echo "$(du -sh "$d" | cut -f1)  ${d:t}  (was $cwd)"
+  done
+
+  if [ -d "$HOME/.local/share/Trash/files" ] && [ -n "$(ls -A "$HOME/.local/share/Trash/files")" ]; then
+    echo "\n==> trash (not emptied): $(du -sh "$HOME/.local/share/Trash" | cut -f1) — gio trash --empty"
+  fi
+
+  local after; after=$(df -k --output=avail "$HOME" | tail -1)
+  echo "\n==> freed $(( (after - before) / 1024 )) MB on $(df --output=target "$HOME" | tail -1); $(df -h --output=avail "$HOME" | tail -1 | tr -d ' ') available"
 }
 
 # --- Aliases: system utilities --------------------------------------------------

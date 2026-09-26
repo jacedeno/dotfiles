@@ -119,6 +119,16 @@ shell function (zsh/.zshrc) runs it last, after the package manager,
 one command refreshes everything, including the tools the package manager
 does not know about.
 
+`clean` is its counterpart. After the package manager's own cleanup (on apt
+that also purges `rc` packages, mostly old kernels), it vacuums the journal to
+4 weeks, removes unused flatpak runtimes and dangling docker/podman images,
+prunes the uv/pip/go/pnpm/npm caches and stale oh-my-posh init scripts, keeps
+only the current and previous Claude Code versions, and deletes the `*.old` /
+`*.bak` binaries and broken symlinks left in `~/.local/bin`. Two things are
+only reported, never removed: Claude project folders whose repo is gone (they
+hold the transcripts and memory) and a non-empty trash. It ends with the
+space freed.
+
 **Copying out of a full-screen TUI** (claude, vim, k9s) needs one of these: the app
 captures the mouse, so dragging selects nothing. Either hold **Shift while dragging**
 to bypass mouse reporting, or skip the mouse entirely with `Ctrl+Shift+K`. This is
