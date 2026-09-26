@@ -116,7 +116,10 @@ fi
 # and the live server handoff; plain `herdr update` refuses to run from a pane.
 update() {
   _sys_update
-  if command -v oh-my-posh >/dev/null 2>&1; then
+  # Only the ~/.local/bin copy is ours to upgrade. A distro package (C2-B5's
+  # /usr/bin RPM) is already covered by _sys_update, and the major-bump
+  # reinstall below would drop a second copy in ~/.local/bin that shadows it.
+  if [[ "$(command -v oh-my-posh)" == "$HOME/.local/bin/oh-my-posh" ]]; then
     echo "\n==> oh-my-posh upgrade"
     # Minor/patch bumps just happen. A major bump only prints a warning and
     # asks for --force, and --force is a silent no-op (seen on 29.6.1 ->
