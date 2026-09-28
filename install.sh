@@ -84,6 +84,10 @@ if command -v systemctl >/dev/null 2>&1; then
   # terminal.shell = herdr). Takes effect on next login, not immediately.
   link "$DOTFILES/environment.d/10-local-bin.conf" "$HOME/.config/environment.d/10-local-bin.conf"
 fi
+if [ "$(hostname -s)" = geekforge ] && command -v podman >/dev/null 2>&1; then
+  # herdr shells have no systemd --user session; see containers/containers.conf.
+  link "$DOTFILES/containers/containers.conf" "$HOME/.config/containers/containers.conf"
+fi
 link "$DOTFILES/bin/clip2forge" "$HOME/.local/bin/clip2forge"
 chmod +x "$DOTFILES/bin/clip2forge"
 link "$DOTFILES/bin/mount-excemca" "$HOME/.local/bin/mount-excemca"
