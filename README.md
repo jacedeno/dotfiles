@@ -20,8 +20,9 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 
 ## What it does
 
-1. Installs packages: `zsh`, `git`, `curl`, `fzf`, `unzip`, `tree`, `ranger` via
-   `dnf` (Fedora) or `apt` (Debian/Ubuntu).
+1. Installs packages: `zsh`, `git`, `curl`, `fzf`, `unzip`, `tree` via
+   `dnf` (Fedora) or `apt` (Debian/Ubuntu), plus [Yazi](https://yazi-rs.github.io) (terminal
+   file manager) from its upstream release into `~/.local/bin`, since no distro packages it.
 2. Installs [Oh My Posh](https://ohmyposh.dev) with the upstream installer into
    `~/.local/bin` and pins the `atomic` theme locally
    (`~/.config/ohmyposh/atomic.omp.json`) so the prompt works offline.
@@ -35,7 +36,6 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `zsh/.zshrc` | `~/.zshrc` |
    | `git/.gitconfig` | `~/.gitconfig` |
    | `git/hooks` | `~/.config/git/hooks` (global `core.hooksPath`; `commit-msg` rejects AI attribution) |
-   | `ranger/rc.conf` | `~/.config/ranger/rc.conf` (overrides only: git status shown next to files) |
    | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
    | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
@@ -68,9 +68,9 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
 ├── claude/statusline.py      # Claude Code status line — model, effort, repo/branch, context bar, cost, cache, rate limits
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
-├── ranger/rc.conf            # ranger overrides only — git status next to files (vcs_aware)
 ├── docs/
-│   └── ranger.md             # tree + ranger: browsing files as a hierarchy in the terminal, keys and usage
+│   ├── yazi.md               # tree + yazi: browsing files as a hierarchy in the terminal, keys and usage
+│   └── yazi-cheatsheet.html  # the same keys as a printable one-page cheatsheet
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
 │   ├── gimble.md             # Chromebook + MrChromebox running Fedora — Alacritty+herdr, default terminal
 │   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap

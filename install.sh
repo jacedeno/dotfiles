@@ -18,11 +18,11 @@ warn() { printf '\033[1;33m[dotfiles]\033[0m %s\n' "$*"; }
 log "Installing packages..."
 # The Nerd Font comes from nerdfonts.com and isn't managed here.
 if command -v dnf >/dev/null 2>&1; then
-  sudo dnf install -y zsh git curl fzf unzip tree ranger
+  sudo dnf install -y zsh git curl fzf unzip tree
 elif command -v apt >/dev/null 2>&1; then
-  sudo apt update && sudo apt install -y zsh git curl fzf unzip tree ranger
+  sudo apt update && sudo apt install -y zsh git curl fzf unzip tree
 else
-  warn "No dnf/apt found — install zsh, git, curl, fzf, unzip, tree, ranger manually."
+  warn "No dnf/apt found — install zsh, git, curl, fzf, unzip, tree manually."
 fi
 
 # --- 2. Oh My Posh --------------------------------------------------------------
@@ -40,6 +40,24 @@ fi
 # Pin the atomic theme locally so the prompt works offline (vendored in the repo)
 mkdir -p "$HOME/.config/ohmyposh"
 cp -f "$DOTFILES/ohmyposh/atomic.omp.json" "$HOME/.config/ohmyposh/atomic.omp.json"
+
+# --- 2b. Yazi -------------------------------------------------------------------
+# Terminal file manager (replaced ranger 2026-10-09; see docs/yazi.md). Not in
+# Fedora's or Debian's repos, so the upstream release binary goes in
+# ~/.local/bin. It does not self-update: delete ~/.local/bin/yazi and re-run.
+if ! command -v yazi >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/yazi" ]; then
+  log "Installing Yazi to ~/.local/bin..."
+  yazi_tmp="$(mktemp -d)"
+  yazi_pkg="yazi-$(uname -m)-unknown-linux-gnu"
+  curl -fsSL -o "$yazi_tmp/yazi.zip" \
+    "https://github.com/sxyazi/yazi/releases/latest/download/$yazi_pkg.zip"
+  unzip -q "$yazi_tmp/yazi.zip" -d "$yazi_tmp"
+  mkdir -p "$HOME/.local/bin"
+  install -m755 "$yazi_tmp/$yazi_pkg/yazi" "$yazi_tmp/$yazi_pkg/ya" "$HOME/.local/bin/"
+  rm -rf "$yazi_tmp"
+else
+  log "Yazi already installed."
+fi
 
 # --- 3. Zsh plugins ---------------------------------------------------------------
 mkdir -p "$HOME/.zsh/plugins"
@@ -73,7 +91,6 @@ link "$DOTFILES/zsh/.zshrc"        "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig"    "$HOME/.gitconfig"
 link "$DOTFILES/git/hooks"         "$HOME/.config/git/hooks"
 chmod +x "$DOTFILES/git/hooks/"*
-link "$DOTFILES/ranger/rc.conf"    "$HOME/.config/ranger/rc.conf"
 if command -v alacritty >/dev/null 2>&1; then
   link "$DOTFILES/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
 fi

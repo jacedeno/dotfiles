@@ -1,4 +1,4 @@
-<title>Ranger Keymap</title>
+<title>Yazi Keymap</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
 <style>
@@ -177,15 +177,15 @@
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">Terminal file manager &middot; ranger 1.9.4</p>
-    <h1>ranger <span class="dim">keymap</span></h1>
+    <p class="eyebrow">Terminal file manager &middot; yazi 26.9.1</p>
+    <h1>yazi <span class="dim">keymap</span></h1>
     <p class="lede">Three columns: the folder above, the folder you are in, and a preview of
       whatever the cursor is on. Keys are vim's &mdash; <strong>h j k l</strong> to move,
-      <strong>y</strong> to copy, <strong>d</strong> to cut. Commands that start with
-      <code>:</code> go to ranger's own command line: press <code>:</code>, type the rest, Enter.</p>
+      <strong>y</strong> to copy, <strong>x</strong> to cut, <strong>p</strong> to paste.
+      Press <kbd>~</kbd> inside yazi for the full list.</p>
     <div class="launch">
-      <code>cd ~/repos/runbook &amp;&amp; ranger</code>
-      <span>Needs the whole screen &mdash; leave Claude Code first, or open a second herdr pane.</span>
+      <code>cd ~/repos/runbook &amp;&amp; yazi</code>
+      <span>Inside herdr: <kbd>Ctrl</kbd>+<kbd>B</kbd> then <kbd>y</kbd> opens it in a split, in the current pane's folder (<kbd>Y</kbd> for a new tab).</span>
     </div>
   </header>
 
@@ -204,7 +204,7 @@
         <div class="row dir"><span class="vcs"></span>k8s/</div>
         <div class="row dir"><span class="vcs"></span>linux/</div>
         <div class="row dir"><span class="vcs"></span>tools/</div>
-        <div class="row sel mod"><span class="vcs">*</span>PLAN.md</div>
+        <div class="row sel"><span class="vcs"></span>PLAN.md</div>
         <div class="row"><span class="vcs"></span>README.md</div>
       </div>
       <div class="col">
@@ -221,16 +221,15 @@ SadServers / iximiuz Labs.
       </div>
     </div>
   </div>
-  <p class="caption">The <code>*</code> is git status, from the one override in
-    <code>~/.config/ranger/rc.conf</code>: <code>set vcs_aware true</code>. Inside a repo each
-    file shows modified / untracked / staged, and the status bar shows the last commit message.</p>
+  <p class="caption">Runs on yazi's defaults &mdash; no config file. Unlike ranger, there is no
+    git status next to files; the official <code>git.yazi</code> plugin adds it if it is ever
+    missed. Images do not preview in Alacritty (no Kitty graphics protocol).</p>
 
   <div class="main">
     <nav aria-label="Sections">
       <ul class="navlist">
         <li><a href="#move">Move around</a></li>
-        <li><a href="#create">Create</a></li>
-        <li><a href="#edit">Edit</a></li>
+        <li><a href="#create">Create, open, rename</a></li>
         <li><a href="#transfer">Copy, move, delete</a></li>
         <li><a href="#mark">Several at once</a></li>
         <li><a href="#search">Search</a></li>
@@ -249,74 +248,70 @@ SadServers / iximiuz Labs.
       <section id="move">
         <h2>Move around</h2>
         <div class="keys">
-          <div class="k"><span><kbd>h j k l</kbd></span><span class="desc">Move. <em>Arrows work too.</em> <kbd>l</kbd> or <kbd>Enter</kbd> opens the folder or file, <kbd>h</kbd> goes up one level</span></div>
+          <div class="k"><span><kbd>h j k l</kbd></span><span class="desc">Move. <em>Arrows work too.</em> <kbd>l</kbd> enters a folder, <kbd>h</kbd> goes up one level</span></div>
+          <div class="k"><span><kbd>gg</kbd> <kbd>G</kbd></span><span class="desc">Top / bottom of the list</span></div>
           <div class="k"><span><kbd>gh</kbd></span><span class="desc">Jump to <code>~</code></span></div>
-          <div class="k"><span><kbd>zh</kbd></span><span class="desc">Show or hide hidden files <em>(<code>.git</code>, <code>.env</code>)</em></span></div>
-          <div class="k"><span><kbd>zp</kbd></span><span class="desc">Show or hide the preview column</span></div>
-          <div class="k"><span><kbd>i</kbd></span><span class="desc">Selected file full screen, read-only &mdash; for long markdown. <kbd>q</kbd> comes back</span></div>
+          <div class="k"><span><kbd>.</kbd></span><span class="desc">Show or hide hidden files <em>(<code>.git</code>, <code>.env</code>)</em></span></div>
+          <div class="k"><span><kbd>J</kbd> <kbd>K</kbd></span><span class="desc">Scroll the preview down / up &mdash; for long markdown</span></div>
         </div>
       </section>
 
       <section id="create">
-        <h2>Create</h2>
+        <h2>Create, open, rename</h2>
         <div class="keys">
-          <div class="k"><span><kbd>:touch</kbd></span><span class="desc"><code>:touch notas.md</code> &mdash; new empty file in the current folder</span></div>
-          <div class="k"><span><kbd>:mkdir</kbd></span><span class="desc"><code>:mkdir borradores</code> &mdash; new folder</span></div>
-          <div class="k"><span><kbd>:edit</kbd></span><span class="desc"><code>:edit notas.md</code> &mdash; new file opened straight in nano; it is created when you save</span></div>
+          <div class="k"><span><kbd>a</kbd></span><span class="desc">Create. <code>notas.md</code> makes a file, <code>borradores/</code> (trailing slash) a folder</span></div>
+          <div class="k"><span><kbd>Enter</kbd></span><span class="desc">Open. Text files go to <code>$EDITOR</code> (nano) &mdash; <kbd>Ctrl</kbd>+<kbd>O</kbd> saves, <kbd>Ctrl</kbd>+<kbd>X</kbd> returns to yazi</span></div>
+          <div class="k"><span><kbd>r</kbd></span><span class="desc">Rename. With several files selected, renames them all at once in the editor</span></div>
         </div>
-      </section>
-
-      <section id="edit">
-        <h2>Edit</h2>
-        <div class="keys">
-          <div class="k"><span><kbd>E</kbd></span><span class="desc">Edit the selected file in nano &mdash; <kbd>Ctrl</kbd>+<kbd>O</kbd> saves, <kbd>Ctrl</kbd>+<kbd>X</kbd> returns to ranger</span></div>
-          <div class="k"><span><kbd>cw</kbd></span><span class="desc">Rename</span></div>
-        </div>
-        <p class="note"><kbd>Enter</kbd> on a text file ends up in nano too, but ranger picks the
-          program by file type, so <kbd>E</kbd> is the predictable choice. Change it by setting
-          <code>EDITOR</code> in <code>~/.zshrc.local</code>.</p>
       </section>
 
       <section id="transfer">
         <h2>Copy, move, delete</h2>
         <div class="keys">
-          <div class="k"><span><kbd>yy</kbd></span><span class="desc">Copy the selected (or marked) files</span></div>
-          <div class="k"><span><kbd>dd</kbd></span><span class="desc">Cut. <em>It does not delete</em> &mdash; it prepares the files to be moved</span></div>
-          <div class="k"><span><kbd>pp</kbd></span><span class="desc">Paste what was copied or cut, into the folder you are in</span></div>
-          <div class="k warn"><span><kbd>dD</kbd></span><span class="desc"><strong>Delete.</strong> Asks <kbd>y</kbd>/<kbd>n</kbd>. No trash: it is gone. On a folder, everything inside goes with it</span></div>
+          <div class="k"><span><kbd>y</kbd></span><span class="desc">Copy the selected (or hovered) files</span></div>
+          <div class="k"><span><kbd>x</kbd></span><span class="desc">Cut. <em>It does not delete</em> &mdash; it prepares the files to be moved</span></div>
+          <div class="k"><span><kbd>p</kbd></span><span class="desc">Paste into the folder you are in. <kbd>P</kbd> overwrites existing files</span></div>
+          <div class="k"><span><kbd>d</kbd></span><span class="desc">Move to the trash. Asks to confirm. <kbd>gt</kbd> browses the trash</span></div>
+          <div class="k warn"><span><kbd>D</kbd></span><span class="desc"><strong>Delete permanently.</strong> No trash: it is gone. On a folder, everything inside goes with it</span></div>
         </div>
       </section>
 
       <section id="mark">
         <h2>Several files at once</h2>
         <div class="keys">
-          <div class="k"><span><kbd>Space</kbd></span><span class="desc">Mark the file under the cursor &mdash; repeat on each one, then <kbd>yy</kbd>, <kbd>dd</kbd> or <kbd>dD</kbd> act on all of them</span></div>
-          <div class="k"><span><kbd>v</kbd></span><span class="desc">Mark every file in the folder</span></div>
-          <div class="k"><span><kbd>uv</kbd></span><span class="desc">Clear all marks</span></div>
+          <div class="k"><span><kbd>Space</kbd></span><span class="desc">Select the file under the cursor and move down &mdash; then <kbd>y</kbd>, <kbd>x</kbd> or <kbd>d</kbd> act on all of them</span></div>
+          <div class="k"><span><kbd>Ctrl</kbd>+<kbd>A</kbd></span><span class="desc">Select every file in the folder</span></div>
+          <div class="k"><span><kbd>v</kbd></span><span class="desc">Visual mode &mdash; move the cursor to select a range</span></div>
+          <div class="k"><span><kbd>Esc</kbd></span><span class="desc">Clear the selection</span></div>
         </div>
       </section>
 
       <section id="search">
         <h2>Search</h2>
         <div class="keys">
-          <div class="k"><span><kbd>/</kbd></span><span class="desc"><code>/text</code> &mdash; search by name in the current folder. <kbd>n</kbd> next match, <kbd>N</kbd> previous</span></div>
-          <div class="k"><span><kbd>f</kbd></span><span class="desc">Then type &mdash; jumps to the first file that matches as you type</span></div>
+          <div class="k"><span><kbd>/</kbd></span><span class="desc">Find by name in the current folder. <kbd>n</kbd> next match, <kbd>N</kbd> previous</span></div>
+          <div class="k"><span><kbd>f</kbd></span><span class="desc">Filter the list as you type</span></div>
+          <div class="k"><span><kbd>S</kbd></span><span class="desc">Search file contents below here (ripgrep)</span></div>
+          <div class="k"><span><kbd>z</kbd></span><span class="desc">Jump anywhere below here with fzf</span></div>
         </div>
+        <p class="note"><kbd>s</kbd> (recursive name search) needs <code>fd</code> and
+          <kbd>Z</kbd> needs <code>zoxide</code> &mdash; neither is installed.</p>
       </section>
 
       <section id="shell">
         <h2>Shell &amp; misc</h2>
         <div class="keys">
-          <div class="k"><span><kbd>S</kbd></span><span class="desc">Open a shell in the current folder. <code>exit</code> returns to ranger</span></div>
-          <div class="k"><span><kbd>!</kbd></span><span class="desc">Then a command &mdash; run one shell command here, without leaving ranger</span></div>
-          <div class="k"><span><kbd>Ctrl</kbd>+<kbd>R</kbd></span><span class="desc">Reset and redraw if the screen gets garbled</span></div>
+          <div class="k"><span><kbd>;</kbd></span><span class="desc">Then a command &mdash; run one shell command here, without leaving yazi</span></div>
+          <div class="k"><span><kbd>Ctrl</kbd>+<kbd>Z</kbd></span><span class="desc">Suspend yazi to the shell. <code>fg</code> brings it back</span></div>
+          <div class="k"><span><kbd>cc</kbd></span><span class="desc">Copy the file's full path to the clipboard</span></div>
+          <div class="k"><span><kbd>~</kbd></span><span class="desc">Help &mdash; every key, searchable</span></div>
           <div class="k"><span><kbd>q</kbd></span><span class="desc">Quit</span></div>
         </div>
       </section>
 
       <section id="tree">
         <h2>tree &mdash; the static half</h2>
-        <p class="note">ranger walks the hierarchy; <code>tree</code> prints it, for pasting a repo
+        <p class="note">yazi walks the hierarchy; <code>tree</code> prints it, for pasting a repo
           layout into a README or a commit message. Both are installed by <code>install.sh</code>
           on Fedora and Debian/Ubuntu; on Windows they live in WSL.</p>
         <div class="cmdblock">
@@ -330,10 +325,10 @@ tree -a -I .git        <span class="c"># include dotfiles</span>
       </section>
 
       <footer>
-        <div>Source: <code>~/repos/dotfiles/docs/ranger.md</code> &middot; config
-          <code>ranger/rc.conf</code> &middot; install <code>install.sh</code></div>
-        <div>Keys verified against the <code>rc.conf</code> and <code>commands.py</code> shipped
-          with ranger 1.9.4. Tried and dropped 2026-09-13: nnn, mc, broot, eza.</div>
+        <div>Source: <code>~/repos/dotfiles/docs/yazi.md</code> &middot; install
+          <code>install.sh</code> (upstream binary into <code>~/.local/bin</code>)</div>
+        <div>Keys verified against <code>keymap-default.toml</code> shipped with yazi 26.9.1.
+          Replaced ranger 2026-10-09. Tried and dropped 2026-09-13: nnn, mc, broot, eza.</div>
       </footer>
     </div>
   </div>
