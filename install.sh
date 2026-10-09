@@ -130,7 +130,7 @@ herdr_bin="$(command -v herdr || echo "$HOME/.local/bin/herdr")"
 if [ -x "$herdr_bin" ]; then
   if ! "$herdr_bin" plugin list 2>/dev/null | grep -q 'ray.file-explorer'; then
     log "Installing the herdr-yazi plugin..."
-    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install speardragon/herdr-yazi --yes >/dev/null \
+    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install speardragon/herdr-yazi --yes >/dev/null 2>&1 \
       || warn "herdr-yazi plugin install failed - run: herdr plugin install speardragon/herdr-yazi"
   else
     log "OK: herdr-yazi plugin"
@@ -169,7 +169,7 @@ fi
 if [ -x "$herdr_bin" ]; then
   if ! "$herdr_bin" plugin list 2>/dev/null | grep -q '^- herdr-sidebar '; then
     log "Installing the herdr-sidebar plugin..."
-    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar --yes >/dev/null \
+    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar --yes >/dev/null 2>&1 \
       || warn "herdr-sidebar plugin install failed - run: herdr plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar"
   else
     log "OK: herdr-sidebar plugin"
