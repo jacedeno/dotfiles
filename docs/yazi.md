@@ -31,7 +31,9 @@ cd ~/repos/some-repo && yazi
 
 Inside herdr there is a shortcut: `ctrl+b` then `y` opens yazi in a split pane, in the
 current pane's folder (`ctrl+b` then `Y` for a new tab). That comes from the herdr-yazi
-plugin, installed on BD-1 only (`geeklab-infra/docs/herdr-plugins-bd1.md`).
+plugin, which `install.sh` adds on every machine where herdr is installed, together with
+those two keys (appended once to `~/.config/herdr/config.toml`; the rest of that file
+stays per machine).
 
 ### Keys
 
@@ -106,5 +108,18 @@ also not installed.
 - Images: the preview column shows text, code, archives and folders. Real image previews
   need a terminal with the Kitty graphics protocol; Alacritty has none, so images do not
   render on any machine here. herdr itself would pass them through.
-- Updating: yazi does not self-update. `rm ~/.local/bin/yazi ~/.local/bin/ya` and re-run
-  `install.sh`.
+- Updating: `update` runs `bin/yazi-update`, which upgrades `~/.local/bin/yazi` to the
+  latest release when there is one (`yazi-update --check` only compares).
+
+## Rolling it out to another machine
+
+`update` does it. Its first step after the system packages is a `git pull` of this repo;
+when the pull brings new commits it re-runs `install.sh`, which on a machine set up
+before 2026-10-09:
+
+1. installs yazi into `~/.local/bin` and links `yazi-update`;
+2. removes the `ranger` package and its dangling `~/.config/ranger/rc.conf` symlink
+   (`~/.local/share/ranger`, bookmarks, is left alone);
+3. where herdr runs, installs the herdr-yazi plugin and appends its two keys.
+
+`tree` was already there. Without `update`: `git -C ~/repos/dotfiles pull && ~/repos/dotfiles/install.sh`.

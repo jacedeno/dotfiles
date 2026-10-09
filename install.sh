@@ -42,22 +42,29 @@ mkdir -p "$HOME/.config/ohmyposh"
 cp -f "$DOTFILES/ohmyposh/atomic.omp.json" "$HOME/.config/ohmyposh/atomic.omp.json"
 
 # --- 2b. Yazi -------------------------------------------------------------------
-# Terminal file manager (replaced ranger 2026-10-09; see docs/yazi.md). Not in
-# Fedora's or Debian's repos, so the upstream release binary goes in
-# ~/.local/bin. It does not self-update: delete ~/.local/bin/yazi and re-run.
+# Terminal file manager (replaced ranger 2026-10-09; see docs/yazi.md). No distro
+# packages it, so bin/yazi-update puts the upstream binary in ~/.local/bin.
+# update() in .zshrc runs the same script to keep it current.
 if ! command -v yazi >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/yazi" ]; then
   log "Installing Yazi to ~/.local/bin..."
-  yazi_tmp="$(mktemp -d)"
-  yazi_pkg="yazi-$(uname -m)-unknown-linux-gnu"
-  curl -fsSL -o "$yazi_tmp/yazi.zip" \
-    "https://github.com/sxyazi/yazi/releases/latest/download/$yazi_pkg.zip"
-  unzip -q "$yazi_tmp/yazi.zip" -d "$yazi_tmp"
-  mkdir -p "$HOME/.local/bin"
-  install -m755 "$yazi_tmp/$yazi_pkg/yazi" "$yazi_tmp/$yazi_pkg/ya" "$HOME/.local/bin/"
-  rm -rf "$yazi_tmp"
+  "$DOTFILES/bin/yazi-update"
 else
   log "Yazi already installed."
 fi
+
+# Retire ranger on machines set up before 2026-10-09. Only the package and the
+# dangling rc.conf symlink go; ~/.local/share/ranger (bookmarks) is left alone.
+if command -v dnf >/dev/null 2>&1 && rpm -q ranger >/dev/null 2>&1; then
+  log "Removing ranger (replaced by yazi)..."
+  sudo dnf remove -y ranger
+elif command -v apt >/dev/null 2>&1 && dpkg -s ranger >/dev/null 2>&1; then
+  log "Removing ranger (replaced by yazi)..."
+  sudo apt remove -y ranger
+fi
+if [ -L "$HOME/.config/ranger/rc.conf" ] && [ "$(readlink "$HOME/.config/ranger/rc.conf")" = "$DOTFILES/ranger/rc.conf" ]; then
+  rm "$HOME/.config/ranger/rc.conf"
+fi
+rmdir "$HOME/.config/ranger" 2>/dev/null || true
 
 # --- 3. Zsh plugins ---------------------------------------------------------------
 mkdir -p "$HOME/.zsh/plugins"
@@ -111,6 +118,47 @@ link "$DOTFILES/bin/mount-excemca" "$HOME/.local/bin/mount-excemca"
 chmod +x "$DOTFILES/bin/mount-excemca"
 link "$DOTFILES/bin/herdr-update" "$HOME/.local/bin/herdr-update"
 chmod +x "$DOTFILES/bin/herdr-update"
+link "$DOTFILES/bin/yazi-update" "$HOME/.local/bin/yazi-update"
+chmod +x "$DOTFILES/bin/yazi-update"
+
+# --- 4a. herdr: yazi launcher -------------------------------------------------------
+# Where herdr runs, add the herdr-yazi plugin and its keys: ctrl+b y opens yazi in
+# a split in the current pane's folder, ctrl+b Y in a new tab. herdr's config.toml
+# is per machine (themes, sound), so only this block is appended, once, marked by
+# the plugin's action id. Needs yazi installed first: the plugin's build checks it.
+herdr_bin="$(command -v herdr || echo "$HOME/.local/bin/herdr")"
+if [ -x "$herdr_bin" ]; then
+  if ! "$herdr_bin" plugin list 2>/dev/null | grep -q 'ray.file-explorer'; then
+    log "Installing the herdr-yazi plugin..."
+    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install speardragon/herdr-yazi --yes >/dev/null \
+      || warn "herdr-yazi plugin install failed - run: herdr plugin install speardragon/herdr-yazi"
+  else
+    log "OK: herdr-yazi plugin"
+  fi
+  herdr_cfg="$HOME/.config/herdr/config.toml"
+  if ! grep -q 'ray.file-explorer.open' "$herdr_cfg" 2>/dev/null; then
+    mkdir -p "$(dirname "$herdr_cfg")"
+    cat >> "$herdr_cfg" <<'HERDR_KEYS'
+
+# --- herdr-yazi keys (added by dotfiles/install.sh; see docs/yazi.md) ---
+[[keys.command]]
+key = "prefix+y"
+type = "plugin_action"
+command = "ray.file-explorer.open"
+description = "yazi: open file explorer (split)"
+
+[[keys.command]]
+key = "prefix+Y"
+type = "plugin_action"
+command = "ray.file-explorer.open-tab"
+description = "yazi: open file explorer (new tab)"
+HERDR_KEYS
+    log "Added herdr-yazi keys to $herdr_cfg"
+    "$herdr_bin" server reload-config >/dev/null 2>&1 || true
+  else
+    log "OK: herdr-yazi keys"
+  fi
+fi
 
 # --- 4b. Claude Code status line ---------------------------------------------------
 # The rows under Claude Code's prompt (model, effort, repo, branch, context bar,

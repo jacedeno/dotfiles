@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Install or upgrade yazi (terminal file manager) in ~/.local/bin from the
+# upstream GitHub release. No distro packages it, so install.sh calls this when
+# yazi is missing and update() calls it every run. A no-op when the installed
+# version already matches the latest release.
+#
+# Usage:
+#   yazi-update            # install, or upgrade to the latest release
+#   yazi-update --check    # only show installed vs available, change nothing
+set -euo pipefail
+
+dest="$HOME/.local/bin"
+pkg="yazi-$(uname -m)-unknown-linux-gnu"
+
+# /releases/latest redirects to /releases/tag/vX.Y.Z; read the tag off that.
+latest_url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+  https://github.com/sxyazi/yazi/releases/latest)"
+latest="${latest_url##*/v}"
+current=""
+if [ -x "$dest/yazi" ]; then
+  current="$("$dest/yazi" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+fi
+
+if [ "${1:-}" = "--check" ]; then
+  echo "yazi installed: ${current:-none}  latest: $latest"
+  exit 0
+fi
+if [ "$current" = "$latest" ]; then
+  echo "yazi up to date: $current"
+  exit 0
+fi
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+curl -fsSL -o "$tmp/yazi.zip" \
+  "https://github.com/sxyazi/yazi/releases/download/v$latest/$pkg.zip"
+unzip -q "$tmp/yazi.zip" -d "$tmp"
+mkdir -p "$dest"
+install -m755 "$tmp/$pkg/yazi" "$tmp/$pkg/ya" "$dest/"
+echo "yazi ${current:-none} -> $latest"

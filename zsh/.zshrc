@@ -116,11 +116,30 @@ elif command -v brew >/dev/null 2>&1; then
 fi
 
 # update: system packages + everything installed outside the package manager,
-# in one shot: Oh My Posh, the zsh plugins (git clones), claude and herdr.
+# in one shot: dotfiles (pull, then install.sh if anything changed), Oh My Posh,
+# the zsh plugins (git clones), yazi, claude and herdr.
 # herdr goes through bin/herdr-update, which handles the inside-a-pane guard
 # and the live server handoff; plain `herdr update` refuses to run from a pane.
 update() {
   _sys_update
+  # Dotfiles first: a pull that brings new commits re-runs install.sh, so a
+  # machine converges on what the repo now says (new tools in, retired ones out).
+  # install.sh is idempotent; an unchanged repo skips it.
+  local dot="${$(readlink -f ~/.zshrc):h:h}"
+  if [ -d "$dot/.git" ]; then
+    echo "\n==> dotfiles pull"
+    local dot_before; dot_before="$(git -C "$dot" rev-parse HEAD)"
+    if git -C "$dot" pull --ff-only -q; then
+      if [ "$(git -C "$dot" rev-parse HEAD)" != "$dot_before" ]; then
+        echo "new commits: $(git -C "$dot" log --oneline "$dot_before..HEAD" | wc -l) — running install.sh"
+        "$dot/install.sh"
+      else
+        echo "up to date: $(git -C "$dot" log --oneline -1)"
+      fi
+    else
+      echo "dotfiles pull failed (local changes or diverged) — skipped install.sh"
+    fi
+  fi
   # Only the ~/.local/bin copy is ours to upgrade. A distro package (C2-B5's
   # /usr/bin RPM) is already covered by _sys_update, and the major-bump
   # reinstall below would drop a second copy in ~/.local/bin that shadows it.
@@ -142,6 +161,9 @@ update() {
     [ -d "$plugin" ] || continue
     echo "\n==> git pull $(basename "${plugin:h}")"; git -C "${plugin:h}" pull --ff-only -q && echo "up to date: $(git -C "${plugin:h}" log --oneline -1)"
   done
+  if command -v yazi-update >/dev/null 2>&1; then
+    echo "\n==> yazi-update"; yazi-update
+  fi
   if command -v claude >/dev/null 2>&1; then
     echo "\n==> claude update"; claude update
   fi

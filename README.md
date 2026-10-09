@@ -40,6 +40,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
    | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
+   | `bin/yazi-update` | `~/.local/bin/yazi-update` — installs or upgrades yazi from its upstream release; run by `install.sh` and `update` |
    | `claude/statusline.py` | `~/.claude/statusline/statusline.py` — Claude Code's status line; `install.sh` also adds the `statusLine` key to `~/.claude/settings.json` if it is missing (see [Claude Code status line](#claude-code-status-line)) |
 
 5. Creates an empty `~/.zshrc.local` for machine-specific config. Git identity and
@@ -66,6 +67,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11)
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
 ├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
+├── bin/yazi-update           # install/upgrade yazi in ~/.local/bin from the upstream release
 ├── claude/statusline.py      # Claude Code status line — model, effort, repo/branch, context bar, cost, cache, rate limits
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── docs/
@@ -114,10 +116,12 @@ guard looks at, updates with `--handoff` so the running server hands its live
 panes to the new binary (nothing is killed, not even a `claude` session doing
 the update), then reinstalls the agent hooks herdr asks for and prints
 `herdr status`. `herdr-update --check` only compares versions. The `update`
-shell function (zsh/.zshrc) runs it last, after the package manager,
-`oh-my-posh upgrade`, a `git pull` of each zsh plugin and `claude update`, so
-one command refreshes everything, including the tools the package manager
-does not know about.
+shell function (zsh/.zshrc) runs it last, after the package manager, a
+`git pull` of this repo (which re-runs `install.sh` when it brings new
+commits, so the machine converges on the repo), `oh-my-posh upgrade`, a
+`git pull` of each zsh plugin, `yazi-update` and `claude update`, so one
+command refreshes everything, including the tools the package manager does
+not know about.
 
 `clean` is its counterpart. After the package manager's own cleanup (on apt
 that also purges `rc` packages, mostly old kernels), it vacuums the journal to
