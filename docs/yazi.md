@@ -121,5 +121,6 @@ before 2026-10-09:
 2. removes the `ranger` package and its dangling `~/.config/ranger/rc.conf` symlink
    (`~/.local/share/ranger`, bookmarks, is left alone);
 3. where herdr runs, installs the herdr-yazi plugin and appends its two keys.
+4. where herdr runs, also installs the herdr-sidebar plugin, on trial (`docs/herdr-sidebar.md`).
 
 `tree` was already there. Without `update`: `git -C ~/repos/dotfiles pull && ~/repos/dotfiles/install.sh`.

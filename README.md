@@ -72,7 +72,8 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── docs/
 │   ├── yazi.md               # tree + yazi: browsing files as a hierarchy in the terminal, keys and usage
-│   └── yazi-cheatsheet.html  # the same keys as a printable one-page cheatsheet
+│   ├── yazi-cheatsheet.html  # the same keys as a printable one-page cheatsheet
+│   └── herdr-sidebar.md      # VS Code-style sidebar plugin for herdr (on trial) — keys, rollout, removal
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
 │   ├── gimble.md             # Chromebook + MrChromebox running Fedora — Alacritty+herdr, default terminal
 │   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap

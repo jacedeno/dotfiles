@@ -160,6 +160,50 @@ HERDR_KEYS
   fi
 fi
 
+# --- 4b. herdr: sidebar (trial) -----------------------------------------------------
+# herdr-sidebar: VS Code-style explorer + source control docked beside the panes
+# (docs/herdr-sidebar.md). On trial since 2026-10-09; in dotfiles so it can be
+# tried on every machine. Same pattern as 4a. The manifest lives in a
+# subdirectory of the repo, hence the long install path. Its build fetches a
+# prebuilt binary where upstream ships one, else builds from source (needs Rust).
+if [ -x "$herdr_bin" ]; then
+  if ! "$herdr_bin" plugin list 2>/dev/null | grep -q '^- herdr-sidebar '; then
+    log "Installing the herdr-sidebar plugin..."
+    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar --yes >/dev/null \
+      || warn "herdr-sidebar plugin install failed - run: herdr plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar"
+  else
+    log "OK: herdr-sidebar plugin"
+  fi
+  if ! grep -q 'herdr-sidebar.open-sidebar' "$herdr_cfg" 2>/dev/null; then
+    cat >> "$herdr_cfg" <<'HERDR_KEYS'
+
+# --- herdr-sidebar keys (added by dotfiles/install.sh; see docs/herdr-sidebar.md) ---
+# Not e/p/g: herdr already uses prefix+e (edit scrollback), p (previous tab), g (goto).
+[[keys.command]]
+key = "prefix+f"
+type = "plugin_action"
+command = "herdr-sidebar.open-sidebar"
+description = "sidebar: toggle"
+
+[[keys.command]]
+key = "prefix+shift+f"
+type = "plugin_action"
+command = "herdr-sidebar.quick-open"
+description = "sidebar: quick open file"
+
+[[keys.command]]
+key = "prefix+d"
+type = "plugin_action"
+command = "herdr-sidebar.show-git"
+description = "sidebar: source control"
+HERDR_KEYS
+    log "Added herdr-sidebar keys to $herdr_cfg"
+    "$herdr_bin" server reload-config >/dev/null 2>&1 || true
+  else
+    log "OK: herdr-sidebar keys"
+  fi
+fi
+
 # --- 4b. Claude Code status line ---------------------------------------------------
 # The rows under Claude Code's prompt (model, effort, repo, branch, context bar,
 # cost, cache, rate limits) come from claude/statusline.py. Claude Code only runs
