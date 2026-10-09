@@ -169,7 +169,12 @@ fi
 if [ -x "$herdr_bin" ]; then
   if ! "$herdr_bin" plugin list 2>/dev/null | grep -q '^- herdr-sidebar '; then
     log "Installing the herdr-sidebar plugin..."
-    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar --yes >/dev/null 2>&1 \
+    # Pin the latest release tag: a bare install takes main's HEAD, which the
+    # plugin's own "Update sidebar" action treats as a preview and never moves
+    # back to stable (seen on GeekForge 2026-10-09).
+    sidebar_url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/alexarthurs/herdr-sidebar/releases/latest)"
+    PATH="$HOME/.local/bin:$PATH" "$herdr_bin" plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar \
+      --ref "${sidebar_url##*/}" --yes >/dev/null 2>&1 \
       || warn "herdr-sidebar plugin install failed - run: herdr plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar"
   else
     log "OK: herdr-sidebar plugin"

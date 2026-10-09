@@ -32,7 +32,12 @@ SHA-256-verified binary where upstream ships one, otherwise a source build that 
 Rust) and appends the three keys above to `~/.config/herdr/config.toml` once. `update` re-runs `install.sh` when a dotfiles pull
 brings new commits, so existing machines pick it up on their next `update`.
 
-The plugin updates itself: its own "Update sidebar" action installs the latest stable
+`install.sh` pins the latest release tag (`--ref vX.Y.Z`). A bare
+`herdr plugin install` takes `main`'s HEAD instead, and the plugin's update action treats
+that as a preview and never moves it back to stable.
+
+The plugin updates itself: its own "Update sidebar" action (herdr's command palette, or
+`herdr plugin action invoke update --plugin herdr-sidebar`) installs the latest stable
 release.
 
 ## What to know while trying it
