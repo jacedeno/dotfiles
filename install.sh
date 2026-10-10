@@ -100,6 +100,24 @@ link "$DOTFILES/git/hooks"         "$HOME/.config/git/hooks"
 chmod +x "$DOTFILES/git/hooks/"*
 if command -v alacritty >/dev/null 2>&1; then
   link "$DOTFILES/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
+  # Color emoji (herdr-sidebar icons and the rest). Fedora ships Noto Color Emoji
+  # only as COLRv1, which Alacritty cannot paint, so emoji fell back to monochrome
+  # Symbola. Install the bitmap (CBDT) build per user; fonts.conf makes it win.
+  link "$DOTFILES/fontconfig/fonts.conf" "$HOME/.config/fontconfig/fonts.conf"
+  emoji_font="$HOME/.local/share/fonts/NotoColorEmoji.ttf"
+  if [ ! -f "$emoji_font" ]; then
+    log "Installing the bitmap Noto Color Emoji to ~/.local/share/fonts..."
+    mkdir -p "$(dirname "$emoji_font")"
+    if curl -fsSL -o "$emoji_font.part" https://github.com/googlefonts/noto-emoji/raw/main/2D/fonts/NotoColorEmoji.ttf; then
+      mv "$emoji_font.part" "$emoji_font"
+      fc-cache -f >/dev/null 2>&1 || true
+    else
+      rm -f "$emoji_font.part"
+      warn "Noto Color Emoji download failed - emoji will render monochrome in Alacritty."
+    fi
+  else
+    log "OK: $emoji_font"
+  fi
 fi
 if command -v systemctl >/dev/null 2>&1; then
   # GUI-launched apps (GNOME app grid, dbus activation) go through the systemd

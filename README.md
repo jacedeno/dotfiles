@@ -37,6 +37,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `git/.gitconfig` | `~/.gitconfig` |
    | `git/hooks` | `~/.config/git/hooks` (global `core.hooksPath`; `commit-msg` rejects AI attribution) |
    | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
+   | `fontconfig/fonts.conf` | `~/.config/fontconfig/fonts.conf` (only if Alacritty is installed) — color emoji, see [Color emoji](#color-emoji); `install.sh` also downloads the font it needs |
    | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
    | `bin/clip2forge` | `~/.local/bin/clip2forge` |
    | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
@@ -63,6 +64,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 ├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
 ├── git/.gitconfig
 ├── alacritty/alacritty.toml  # the terminal — Tokyo Night on black, launches herdr
+├── fontconfig/fonts.conf     # color emoji in Alacritty — bitmap Noto Color Emoji wins over COLRv1/Symbola
 ├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
 ├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11)
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
@@ -107,6 +109,21 @@ What the repo config binds directly:
 | Right click | Paste |
 
 To get a plain zsh with no herdr in the way: `alacritty -e /usr/bin/zsh`.
+
+### Color emoji
+
+Fedora ships *Noto Color Emoji* only in the COLRv1 (vector) format, which
+Alacritty cannot paint, so fontconfig falls back to monochrome *Symbola* and the
+herdr-sidebar icons come out as outlines. `install.sh` downloads the bitmap
+(CBDT) build, `NotoColorEmoji.ttf` from
+[googlefonts/noto-emoji](https://github.com/googlefonts/noto-emoji) (`2D/fonts/`),
+into `~/.local/share/fonts/`, and `fontconfig/fonts.conf` hides the COLRv1 build
+and Symbola so it always wins. Restart Alacritty after the first install.
+
+The downloaded font never updates itself; to pick up newer emoji, delete it and
+re-run `install.sh`. Check what a glyph resolves to with
+`fc-match "FiraCode Nerd Font Mono:charset=1f4c1"` (📁) — it should say
+`Noto Color Emoji`.
 
 ### Updating herdr
 
