@@ -77,6 +77,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
 │   ├── yazi-cheatsheet.html  # the same keys as a printable one-page cheatsheet
 │   └── herdr-sidebar.md      # VS Code-style sidebar plugin for herdr (on trial) — keys, rollout, removal
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
+│   ├── gimble.md             # Santi's laptop: Chromebook + MrChromebox running Fedora — Alacritty+herdr
 │   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap
 └── windows/
     └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
@@ -90,6 +91,7 @@ Those are documented in [`machines/`](machines/), which `install.sh` never touch
 
 | Machine | Notes |
 | :--- | :--- |
+| [`gimble`](machines/gimble.md) | **Santi's laptop.** Google Chromebook reflashed with MrChromebox, running Fedora. Touchpad scroll tuning, dead webcam, Bluetooth workarounds. Also on Alacritty + herdr, and the only machine where it is GNOME's *default* terminal (needs `xdg-terminal-exec`). |
 | [`ThinkPadT470`](machines/ThinkPadT470.md) | Personal work laptop, Fedora. First machine on Alacritty + herdr instead of WezTerm — herdr owns tabs/splits/persistence since Alacritty has none. |
 
 ## Terminal: Alacritty + herdr
