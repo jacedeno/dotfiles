@@ -1,4 +1,24 @@
-# dotfiles
+<h1 align="center">dotfiles</h1>
+<p align="center"><em>Portable terminal environment: zsh + Oh My Posh + fzf. One-command setup for Fedora and Debian/Ubuntu.</em></p>
+
+<p align="center">
+  <a href="#quick-start"><img src="https://img.shields.io/badge/setup-one%20command-2ea44f?style=flat-square" alt="Setup: one command"></a>
+  <a href="#quick-start"><img src="https://img.shields.io/badge/install.sh-idempotent-2ea44f?style=flat-square" alt="install.sh: idempotent"></a>
+  <a href="#overview"><img src="https://img.shields.io/badge/platforms-Fedora%20%7C%20Debian%2FUbuntu%20%7C%20Windows%20%28WSL%29-6e7781?style=flat-square" alt="Platforms: Fedora, Debian/Ubuntu, Windows (WSL)"></a>
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/zsh-shell-F15A24?style=flat-square&logo=zsh&logoColor=white" alt="zsh">
+  <img src="https://img.shields.io/badge/Oh%20My%20Posh-atomic-1f6feb?style=flat-square" alt="Oh My Posh">
+  <img src="https://img.shields.io/badge/fzf-fuzzy%20finder-6e7781?style=flat-square" alt="fzf">
+  <img src="https://img.shields.io/badge/Alacritty-terminal-F46D01?style=flat-square&logo=alacritty&logoColor=white" alt="Alacritty">
+  <img src="https://img.shields.io/badge/herdr-sessions-6e7781?style=flat-square" alt="herdr">
+  <img src="https://img.shields.io/badge/Python-status%20line-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/PowerShell-Windows-5391FE?style=flat-square" alt="PowerShell">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/jacedeno/dotfiles?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/github/last-commit/jacedeno/dotfiles?style=flat-square" alt="Last commit">
+</p>
+
+## Overview
 
 My portable terminal environment: **zsh + Oh My Posh (atomic) + fzf + autosuggestions +
 syntax highlighting**, plus git and Alacritty configs. One command sets up any
@@ -6,7 +26,9 @@ fresh Fedora or Debian/Ubuntu machine — and on Windows, `install.ps1` for the
 native side plus WSL for the same zsh shell. No macOS: there is no Mac in the fleet
 (support dropped 2026-09-14).
 
-## Quick start
+## Getting started
+
+### Quick start
 
 ```bash
 git clone https://github.com/jacedeno/dotfiles.git ~/repos/dotfiles
@@ -18,7 +40,7 @@ exec zsh
 `install.sh` is **idempotent** — safe to re-run any time. It never overwrites your
 existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/`.
 
-## What it does
+### What it does
 
 1. Installs packages: `zsh`, `git`, `curl`, `fzf`, `unzip`, `tree` via
    `dnf` (Fedora) or `apt` (Debian/Ubuntu), plus [Yazi](https://yazi-rs.github.io) (terminal
@@ -48,7 +70,7 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    other machine-specific git settings go in `~/.gitconfig.local` (untracked), which
    the tracked `.gitconfig` includes last so its values win.
 
-### Notes
+#### Notes
 
 - No terminal emulator is installed: `alacritty/alacritty.toml` is linked only if
   Alacritty is already present.
@@ -56,45 +78,39 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
   old `~/.zshrc`; `~/.oh-my-zsh` is left untouched, so reverting is just a matter
   of restoring the backup.
 
-## Layout
+### Windows
 
-```
-├── install.sh                # setup script (Fedora + Debian/Ubuntu)
-├── install.ps1               # setup script (Windows-native: git, font, prompt, profile)
-├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
-├── git/.gitconfig
-├── alacritty/alacritty.toml  # the terminal — Tokyo Night on black, launches herdr
-├── fontconfig/fonts.conf     # color emoji in Alacritty — bitmap Noto Color Emoji wins over COLRv1/Symbola
-├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
-├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11)
-├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
-├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
-├── bin/yazi-update           # install/upgrade yazi in ~/.local/bin from the upstream release
-├── claude/statusline.py      # Claude Code status line — model, effort, repo/branch, context bar, cost, cache, rate limits
-├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
-├── docs/
-│   ├── yazi.md               # tree + yazi: browsing files as a hierarchy in the terminal, keys and usage
-│   ├── yazi-cheatsheet.html  # the same keys as a printable one-page cheatsheet
-│   └── herdr-sidebar.md      # VS Code-style sidebar plugin for herdr (on trial) — keys, rollout, removal
-├── machines/                 # per-machine hardware notes (docs only, never installed)
-│   ├── gimble.md             # Santi's laptop: Chromebook + MrChromebox running Fedora — Alacritty+herdr
-│   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap
-└── windows/
-    └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
+The shell on Windows is **WSL** — it runs the exact same zsh + dotfiles as the Linux
+machines, so aliases, prompt and config are identical with nothing duplicated. The
+native side (git, Nerd Font, prompt, PowerShell profile) is set up by `install.ps1`.
+No terminal emulator is installed: Windows Terminal already ships with Windows.
+
+```powershell
+# from the repo root, in PowerShell:
+.\install.ps1
 ```
 
-## Machines
+`install.ps1` is idempotent and backs up anything it replaces. It installs Git +
+Oh My Posh via `winget`, the FiraCode Nerd Font via `oh-my-posh font install`, and
+dot-sources `windows/Microsoft.PowerShell_profile.ps1` from `$PROFILE`.
 
-The configs are portable by design, but some boxes need workarounds a dotfile
-cannot carry — firmware quirks, driver overrides, hardware that only half works.
-Those are documented in [`machines/`](machines/), which `install.sh` never touches.
+Then set up the shell in WSL (the same zsh everywhere):
 
-| Machine | Notes |
-| :--- | :--- |
-| [`gimble`](machines/gimble.md) | **Santi's laptop.** Google Chromebook reflashed with MrChromebox, running Fedora. Touchpad scroll tuning, dead webcam, Bluetooth workarounds. Also on Alacritty + herdr, and the only machine where it is GNOME's *default* terminal (needs `xdg-terminal-exec`). |
-| [`ThinkPadT470`](machines/ThinkPadT470.md) | Personal work laptop, Fedora. First machine on Alacritty + herdr instead of WezTerm — herdr owns tabs/splits/persistence since Alacritty has none. |
+```powershell
+wsl --install -d Debian          # admin; skip if WSL is already set up
+```
+```bash
+# inside WSL:
+git clone https://github.com/jacedeno/dotfiles.git ~/repos/dotfiles
+cd ~/repos/dotfiles && ./install.sh
+```
 
-## Terminal: Alacritty + herdr
+Set the WSL distro as Windows Terminal's default profile to land straight in zsh;
+the PowerShell profile stays light for native tasks.
+
+## Features
+
+### Terminal: Alacritty + herdr
 
 Alacritty is the emulator; it has no tabs or panes of its own, so
 `alacritty/alacritty.toml` sets `terminal.shell = herdr` and every window
@@ -110,7 +126,7 @@ What the repo config binds directly:
 
 To get a plain zsh with no herdr in the way: `alacritty -e /usr/bin/zsh`.
 
-### Color emoji
+#### Color emoji
 
 Fedora ships *Noto Color Emoji* only in the COLRv1 (vector) format, which
 Alacritty cannot paint, so fontconfig falls back to monochrome *Symbola* and the
@@ -125,7 +141,7 @@ re-run `install.sh`. Check what a glyph resolves to with
 `fc-match "FiraCode Nerd Font Mono:charset=1f4c1"` (📁) — it should say
 `Noto Color Emoji`.
 
-### Updating herdr
+#### Updating herdr
 
 `herdr update` refuses to run from inside a herdr pane, and with
 `terminal.shell = herdr` every Alacritty window *is* one. Run `herdr-update`
@@ -156,7 +172,7 @@ captures the mouse, so dragging selects nothing. Either hold **Shift while dragg
 to bypass mouse reporting, or skip the mouse entirely with `Ctrl+Shift+K`. This is
 the single most-forgotten thing in this config, which is why it is written down here.
 
-## Claude Code status line
+### Claude Code status line
 
 The three rows under Claude Code's prompt are not a built-in: they come from
 `claude/statusline.py`, which Claude Code runs on every refresh with the session
@@ -196,7 +212,7 @@ Notes:
   total. Row 3's segments appear only when the payload carries them (older
   Claude Code versions send no `prompt_cache` or `rate_limits`).
 
-## Design notes
+### Design notes
 
 - **Portable core, local overrides.** `~/.zshrc` is identical on every machine.
   Anything machine-specific (nvm, PlatformIO, work PATHs, extra aliases) lives in
@@ -212,32 +228,52 @@ Notes:
   Font Mono*. Grab it from [nerdfonts.com](https://www.nerdfonts.com/) if the
   prompt shows broken symbols.
 
-## Windows
+## Layout
 
-The shell on Windows is **WSL** — it runs the exact same zsh + dotfiles as the Linux
-machines, so aliases, prompt and config are identical with nothing duplicated. The
-native side (git, Nerd Font, prompt, PowerShell profile) is set up by `install.ps1`.
-No terminal emulator is installed: Windows Terminal already ships with Windows.
-
-```powershell
-# from the repo root, in PowerShell:
-.\install.ps1
+```
+├── install.sh                # setup script (Fedora + Debian/Ubuntu)
+├── install.ps1               # setup script (Windows-native: git, font, prompt, profile)
+├── zsh/.zshrc                # portable zshrc — degrades gracefully if a tool is missing
+├── git/.gitconfig
+├── alacritty/alacritty.toml  # the terminal — Tokyo Night on black, launches herdr
+├── fontconfig/fonts.conf     # color emoji in Alacritty — bitmap Noto Color Emoji wins over COLRv1/Symbola
+├── environment.d/10-local-bin.conf  # puts ~/.local/bin on PATH for GUI/dbus-launched apps (systemd --user)
+├── bin/clip2forge            # push desktop clipboard to GeekForge (Wayland/X11)
+├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
+├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
+├── bin/yazi-update           # install/upgrade yazi in ~/.local/bin from the upstream release
+├── claude/statusline.py      # Claude Code status line — model, effort, repo/branch, context bar, cost, cache, rate limits
+├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
+├── docs/
+│   ├── yazi.md               # tree + yazi: browsing files as a hierarchy in the terminal, keys and usage
+│   ├── yazi-cheatsheet.html  # the same keys as a printable one-page cheatsheet
+│   └── herdr-sidebar.md      # VS Code-style sidebar plugin for herdr (on trial) — keys, rollout, removal
+├── machines/                 # per-machine hardware notes (docs only, never installed)
+│   ├── gimble.md             # Santi's laptop: Chromebook + MrChromebox running Fedora — Alacritty+herdr
+│   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap
+└── windows/
+    └── Microsoft.PowerShell_profile.ps1   # light native-Windows profile (installed by install.ps1)
 ```
 
-`install.ps1` is idempotent and backs up anything it replaces. It installs Git +
-Oh My Posh via `winget`, the FiraCode Nerd Font via `oh-my-posh font install`, and
-dot-sources `windows/Microsoft.PowerShell_profile.ps1` from `$PROFILE`.
+## Machines
 
-Then set up the shell in WSL (the same zsh everywhere):
+The configs are portable by design, but some boxes need workarounds a dotfile
+cannot carry — firmware quirks, driver overrides, hardware that only half works.
+Those are documented in [`machines/`](machines/), which `install.sh` never touches.
 
-```powershell
-wsl --install -d Debian          # admin; skip if WSL is already set up
-```
-```bash
-# inside WSL:
-git clone https://github.com/jacedeno/dotfiles.git ~/repos/dotfiles
-cd ~/repos/dotfiles && ./install.sh
-```
+| Machine | Notes |
+| :--- | :--- |
+| [`gimble`](machines/gimble.md) | **Santi's laptop.** Google Chromebook reflashed with MrChromebox, running Fedora. Touchpad scroll tuning, dead webcam, Bluetooth workarounds. Also on Alacritty + herdr, and the only machine where it is GNOME's *default* terminal (needs `xdg-terminal-exec`). |
+| [`ThinkPadT470`](machines/ThinkPadT470.md) | Personal work laptop, Fedora. First machine on Alacritty + herdr instead of WezTerm — herdr owns tabs/splits/persistence since Alacritty has none. |
 
-Set the WSL distro as Windows Terminal's default profile to land straight in zsh;
-the PowerShell profile stays light for native tasks.
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+<p align="center">
+  Built by <b>Jose Cedeno</b> ·
+  <a href="https://geekendzone.com">geekendzone.com</a> ·
+  <a href="https://www.linkedin.com/in/joseangelcedeno/">LinkedIn</a>
+</p>
