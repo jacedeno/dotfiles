@@ -10,6 +10,11 @@ set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+# DOTFILES_PROFILE=minimal: someone else's machine built on these dotfiles (Sama's
+# laptop, via her toolbox): same shell, prompt, aliases and terminal, without the
+# scripts that only make sense on Jose's machines (clip2forge, mount-excemca).
+# update() re-runs this script, so the profile is exported from ~/.zshrc.local.
+DOTFILES_PROFILE="${DOTFILES_PROFILE:-full}"
 
 log()  { printf '\033[1;32m[dotfiles]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[dotfiles]\033[0m %s\n' "$*"; }
@@ -126,14 +131,27 @@ if command -v systemctl >/dev/null 2>&1; then
   # terminal.shell = herdr). Takes effect on next login, not immediately.
   link "$DOTFILES/environment.d/10-local-bin.conf" "$HOME/.config/environment.d/10-local-bin.conf"
 fi
+# WSL: the terminal is the native Windows Alacritty, configured from the same
+# alacritty.toml by bin/alacritty-windows (only [terminal.shell] differs).
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  link "$DOTFILES/bin/alacritty-windows" "$HOME/.local/bin/alacritty-windows"
+  chmod +x "$DOTFILES/bin/alacritty-windows"
+  if [ -e "/mnt/c/Program Files/Alacritty/alacritty.exe" ]; then
+    "$DOTFILES/bin/alacritty-windows" || warn "alacritty-windows failed - run it by hand"
+  else
+    log "Windows Alacritty not installed yet - run alacritty-windows after installing it."
+  fi
+fi
 if [ "$(hostname -s)" = geekforge ] && command -v podman >/dev/null 2>&1; then
   # herdr shells have no systemd --user session; see containers/containers.conf.
   link "$DOTFILES/containers/containers.conf" "$HOME/.config/containers/containers.conf"
 fi
-link "$DOTFILES/bin/clip2forge" "$HOME/.local/bin/clip2forge"
-chmod +x "$DOTFILES/bin/clip2forge"
-link "$DOTFILES/bin/mount-excemca" "$HOME/.local/bin/mount-excemca"
-chmod +x "$DOTFILES/bin/mount-excemca"
+if [ "$DOTFILES_PROFILE" != minimal ]; then
+  link "$DOTFILES/bin/clip2forge" "$HOME/.local/bin/clip2forge"
+  chmod +x "$DOTFILES/bin/clip2forge"
+  link "$DOTFILES/bin/mount-excemca" "$HOME/.local/bin/mount-excemca"
+  chmod +x "$DOTFILES/bin/mount-excemca"
+fi
 link "$DOTFILES/bin/herdr-update" "$HOME/.local/bin/herdr-update"
 chmod +x "$DOTFILES/bin/herdr-update"
 link "$DOTFILES/bin/yazi-update" "$HOME/.local/bin/yazi-update"

@@ -170,6 +170,11 @@ update() {
   if command -v herdr-update >/dev/null 2>&1; then
     echo "\n==> herdr-update"; herdr-update
   fi
+  # Machine-specific extras, defined in ~/.zshrc.local (e.g. Sama's toolbox:
+  # agy, npm globals, skills, her toolbox and secrets repos).
+  if (( $+functions[update_local] )); then
+    echo "\n==> update_local"; update_local
+  fi
 }
 
 # clean: package orphans and caches, then what update and the tools it drives
@@ -182,7 +187,10 @@ clean() {
   if command -v flatpak >/dev/null 2>&1; then
     echo "\n==> flatpak unused runtimes"; flatpak uninstall --unused -y
   fi
-  echo "\n==> journal older than 4 weeks"; sudo journalctl --vacuum-time=4weeks
+  # No systemd (WSL without systemd=true) means no journal to vacuum.
+  if [ -d /run/systemd/system ]; then
+    echo "\n==> journal older than 4 weeks"; sudo journalctl --vacuum-time=4weeks
+  fi
   local c
   for c in docker podman; do
     command -v $c >/dev/null 2>&1 && $c info >/dev/null 2>&1 || continue

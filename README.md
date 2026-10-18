@@ -61,8 +61,9 @@ existing files: anything in the way is moved to `~/.dotfiles-backup/<timestamp>/
    | `alacritty/alacritty.toml` | `~/.config/alacritty/alacritty.toml` (only if Alacritty is installed) |
    | `fontconfig/fonts.conf` | `~/.config/fontconfig/fonts.conf` (only if Alacritty is installed) — color emoji, see [Color emoji](#color-emoji); `install.sh` also downloads the font it needs |
    | `environment.d/10-local-bin.conf` | `~/.config/environment.d/10-local-bin.conf` (only if `systemctl` is present) — puts `~/.local/bin` on `PATH` for GUI/dbus-launched apps, which never source `~/.zshrc`. Takes effect on next login. |
-   | `bin/clip2forge` | `~/.local/bin/clip2forge` |
-   | `bin/mount-excemca` | `~/.local/bin/mount-excemca` |
+   | `bin/clip2forge` | `~/.local/bin/clip2forge` (skipped with `DOTFILES_PROFILE=minimal`) |
+   | `bin/mount-excemca` | `~/.local/bin/mount-excemca` (skipped with `DOTFILES_PROFILE=minimal`) |
+   | `bin/alacritty-windows` | `~/.local/bin/alacritty-windows` (WSL only) — writes the Windows Alacritty config, see [Windows](#windows) |
    | `bin/yazi-update` | `~/.local/bin/yazi-update` — installs or upgrades yazi from its upstream release; run by `install.sh` and `update` |
    | `claude/statusline.py` | `~/.claude/statusline/statusline.py` — Claude Code's status line; `install.sh` also adds the `statusLine` key to `~/.claude/settings.json` if it is missing (see [Claude Code status line](#claude-code-status-line)) |
 
@@ -107,6 +108,25 @@ cd ~/repos/dotfiles && ./install.sh
 
 Set the WSL distro as Windows Terminal's default profile to land straight in zsh;
 the PowerShell profile stays light for native tasks.
+
+#### Alacritty on Windows (optional)
+
+To get the same terminal as the Linux desktops, install the native Windows build
+(`winget install Alacritty.Alacritty`) and the FiraCode Nerd Font, then run
+`alacritty-windows` inside WSL (`install.sh` runs it by itself when Alacritty is
+already installed). It writes `%APPDATA%\alacritty\alacritty.toml` from
+`alacritty/alacritty.toml`; only `[terminal.shell]` differs: it starts the WSL distro
+and runs herdr in it, exporting `SHELL` so herdr's panes get zsh instead of `/bin/sh`.
+Edit the Linux file and re-run `alacritty-windows`, never the generated one.
+
+#### Someone else's machine: `DOTFILES_PROFILE=minimal`
+
+`DOTFILES_PROFILE=minimal ./install.sh` gives the same shell, prompt, aliases, terminal
+and herdr plugins without the scripts that only make sense on Jose's machines
+(`clip2forge`, `mount-excemca`). Export it from `~/.zshrc.local`, because `update`
+re-runs `install.sh`. `update` also calls an `update_local` function when
+`~/.zshrc.local` defines one, for that machine's own tools. Sama's laptop is set up
+this way by her toolbox.
 
 ## Features
 
