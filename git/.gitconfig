@@ -7,10 +7,6 @@
 [credential "https://gist.github.com"]
 	helper = 
 	helper = !gh auth git-credential
-# Machine-specific overrides (identity, credential helper paths). Loaded last,
-# so values here win. Not tracked — same pattern as ~/.zshrc.local.
-[include]
-	path = ~/.gitconfig.local
 [core]
 	# Global hooks: dotfiles/git/hooks (commit-msg rejects AI attribution).
 	# Linked to ~/.config/git/hooks by install.sh; ~ works cross-platform.
@@ -21,3 +17,9 @@
 	s = status -sb
 [pull]
 	rebase = true
+
+# Machine-specific overrides (identity, credential helper paths). Must stay the
+# LAST section: git applies settings in file order, so anything after it would win
+# over the local file (core.hooksPath did, until 2026-10-18). Not tracked — same pattern as ~/.zshrc.local.
+[include]
+	path = ~/.gitconfig.local
