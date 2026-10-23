@@ -10,9 +10,11 @@ corporate IT restrictions.
 | | |
 | :--- | :--- |
 | Hostname | `ThinkPadT470` |
-| OS | Fedora Linux 44 (Workstation Edition) |
-| Kernel | 7.1.5-201.fc44.x86_64 |
-| GPU | Intel HD Graphics 520 (Skylake-U GT2) — integrated only |
+| OS | Fedora Linux 45 (Workstation Edition) — pre-release install, then cloned from BD-1 on 2026-10-22 |
+| Kernel | 7.2.11-300.fc45.x86_64 |
+| GPU | Intel HD Graphics 520 (Skylake-U GT2) **plus an NVIDIA GeForce 940MX** (GM108M, Maxwell, `10de:134d`), Optimus |
+| NVIDIA driver | RPM Fusion **`580xx`** legacy branch (580.178.04). The current branch (615+) dropped Maxwell |
+| Login user | `cedenoj` |
 | zsh | 5.9 |
 | Oh My Posh | 29.6.1 |
 | herdr | 0.8.0 |
@@ -65,8 +67,10 @@ locally instead of remotely.
 - **GPU backend pinning did not port.** The old `wezterm.lua` set
   `front_end = "WebGpu"` / `webgpu_power_preference = "HighPerformance"`, which
   has no Alacritty equivalent — Alacritty always renders via OpenGL and doesn't
-  expose adapter selection in config. Moot here anyway: this laptop's Intel
-  HD 520 is the only GPU (no discrete adapter to prefer).
+  expose adapter selection in config. The laptop does have a discrete
+  GeForce 940MX next to the Intel HD 520 (an earlier version of this note
+  said integrated-only, which was wrong), but Alacritty renders on the Intel
+  GPU like the rest of the desktop.
 
 ### Bug hit right after reboot: Alacritty wouldn't open from the GNOME app grid
 
@@ -109,3 +113,17 @@ app-scope launch model queries the systemd user manager's *current*
 environment per launch rather than inheriting a stale copy from gnome-shell's
 own startup — useful for testing an environment.d change without a full
 logout, but the drop-in file is still what makes it durable across reboots.
+
+## Cloned from BD-1 (2026-10-22)
+
+Rebuilt to match BD-1 with the Keychain USB kit
+(`geeklab-infra/provisioning/fedora-clone/`, doc `docs/fedora-clone-usb.md`):
+BD-1's packages, flatpaks, GNOME settings and extensions, dotfiles and VS Code
+extensions. The run surfaced the 940MX. BD-1's NVIDIA packages (615 branch)
+do not support Maxwell, so the driver was swapped for `akmod-nvidia-580xx` +
+`xorg-x11-drv-nvidia-580xx-cuda`. After the reboot, `nvidia-smi` reports the
+940MX on 580.178.04. `restore.sh` now picks the 580xx branch by itself on
+GM/GP/GV GPUs.
+
+The pre-clone state (dconf dump, RPM and flatpak lists) is kept in
+`~/pre-restore-backup/` on the laptop.
