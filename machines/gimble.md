@@ -323,3 +323,10 @@ watch -n0.1 cat /sys/class/leds/chromeos::kbd_backlight/brightness
 - **MAX98390 speaker firmware is missing** (`dsm_param_*.bin`). Audio works; the
   amps just run without their tuning blobs, which is the norm on Chromebooks
   outside ChromeOS.
+
+## Dock: opted out of the dotfiles style (2026-10-24)
+
+`install.sh` step 4c loads `gnome/dash-to-dock.ini` on every GNOME desktop, with the
+apps grid at the end of the dock. Santi's dock is the one that style was copied from, but
+his keeps the grid at the start, so `~/.zshrc.local` here exports `DOTFILES_GNOME_DOCK=0`.
+Remove that line only if Santi wants Jose's dock.

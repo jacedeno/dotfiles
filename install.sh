@@ -277,6 +277,26 @@ else
   warn "python3 not found — statusline.py needs it; skipped the settings.json edit."
 fi
 
+# --- 4c. GNOME: Dash to Dock style ----------------------------------------------------
+# One dock look on every GNOME desktop that has the extension (gnome/dash-to-dock.ini).
+# Skipped without GNOME (GeekForge, Sama's WSL) or when ~/.zshrc.local exports
+# DOTFILES_GNOME_DOCK=0, which Santi's laptop does: his dock keeps its own layout.
+dtd=dash-to-dock@micxgx.gmail.com
+if [ "${DOTFILES_GNOME_DOCK:-1}" != 0 ] && command -v dconf >/dev/null 2>&1 && command -v gnome-extensions >/dev/null 2>&1; then
+  # Over ssh there is no session bus in the environment; the running session's is here.
+  [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] || [ ! -S "/run/user/$(id -u)/bus" ] \
+    || export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+  if gnome-extensions info "$dtd" >/dev/null 2>&1; then
+    if grep -v '^#' "$DOTFILES/gnome/dash-to-dock.ini" | dconf load /org/gnome/shell/extensions/dash-to-dock/; then
+      log "Dash to Dock style applied."
+    else
+      warn "Could not apply the Dash to Dock style (no GNOME session running?)."
+    fi
+  else
+    log "Dash to Dock not installed, dock style skipped."
+  fi
+fi
+
 # --- 5. History file -----------------------------------------------------------------
 touch "$HOME/.zsh_history" && chmod 600 "$HOME/.zsh_history"
 
