@@ -330,3 +330,22 @@ watch -n0.1 cat /sys/class/leds/chromeos::kbd_backlight/brightness
 apps grid at the end of the dock. Santi's dock is the one that style was copied from, but
 his keeps the grid at the start, so `~/.zshrc.local` here exports `DOTFILES_GNOME_DOCK=0`.
 Remove that line only if Santi wants Jose's dock.
+
+## Debloat (2026-10-24)
+
+Survey first (7.6 GiB, 3.6 available, Chrome 3.7 GB, about 1.4 GB in idle background
+services), then Jose approved removing what the machine does not need. Done over SSH.
+
+| Change | Detail |
+| :--- | :--- |
+| Removed | `abrt*` + `gnome-abrt`, `ibus-typing-booster`, VM guest tools (`open-vm-tools*`, `qemu-guest-agent`, `spice-vdagent`, `virtualbox-guest-additions`), `mediawriter`, `gnome-tour`, `wezterm` + its COPR, the **RPM** `google-chrome-stable` (the Flatpak `com.google.Chrome` is the one in use, profile in `~/.var`), `rygel`, `gnome-user-share`, `livesys-scripts`, `rsyslog`, `sysstat`, `plocate`, `stratis*`, `ModemManager` (+ `NetworkManager-wwan`/`-bluetooth`). Run with `clean_requirements_on_remove=False`: the auto-cleanup wanted gdb, emoji fonts and more |
+| Disabled, not removed | `iscsi*` and `multipathd` (removing them drags `libvirt-daemon-kvm` + `qemu`), `mdmonitor` + `raid-check.timer` (**`mdadm` removal drags gdm, gnome-shell and nautilus**), `lvm2-monitor`, `NetworkManager-wait-online`, `virtqemud` |
+| User session | `gnome-software.service` masked with the D-Bus override from `geeklab-infra/docs/low-ram-laptop-fedora.md` (the app still opens); `evolution-alarm-notify` masked + autostart hidden (it ships inside `evolution-data-server`, which the shell calendar needs); stale `remmina-applet` autostart deleted (Remmina itself was already uninstalled) |
+| Updates instead of gnome-software | `dnf5-automatic.timer`, **security updates only**, applied, never reboots (`/etc/dnf/automatic.conf`); `flatpak-update.timer`, weekly `flatpak update --system` + unused-runtime cleanup (`/etc/systemd/system/flatpak-update.*`) |
+| Disk | unused Flatpak runtimes 20 → 15 (9.0 → 7.7 GB), journal capped at 100 MB (was 834 MB), dnf and gnome-software caches |
+| Default browser | `mimeapps.list` handlers moved from `google-chrome.desktop` to `com.google.Chrome.desktop` |
+
+Kept on purpose, still open questions for Jose: Cloudflare WARP (installed, unregistered),
+Docker (disabled) and libvirt, GPaste, Maps/Weather/Contacts/Connections/Simple Scan,
+`localsearch`. RAM gains show after the next reboot: processes of removed packages and
+the daemons gnome-software woke keep running until then.
