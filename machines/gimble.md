@@ -281,12 +281,32 @@ shows up as flicker.
 (`cat /sys/power/mem_sleep`). The EC never actually loses power, so nothing turns the
 LED off implicitly — it has to be zeroed explicitly on every transition.
 
-Two hooks cover the two transitions:
+Three pieces cover the two transitions:
 
 | Hook | Runs | What it does |
 | :--- | :--- | :--- |
-| `/usr/lib/systemd/system-shutdown/kbd-backlight.shutdown` | Poweroff / reboot | Writes 0 at the very end of shutdown |
+| `/etc/systemd/system/kbd-backlight-poweroff.service` | Poweroff / reboot / halt | Oneshot started during the shutdown transaction (`After=final.target`, `Before=systemd-poweroff.service` etc.) that writes 0; its execution is visible in the journal of the previous boot |
+| `/usr/lib/systemd/system-shutdown/kbd-backlight.shutdown` | Poweroff / reboot | Backup: writes 0 again at the very end of shutdown, inside `systemd-shutdown` |
 | `/usr/lib/systemd/system-sleep/kbd-backlight-suspend.sh` | Suspend / resume | Saves the value to `/var/lib/kbd-backlight-suspend.state`, writes 0 on `pre`, restores on `post` |
+
+**History of the 2026-08 regression:** `kbd-backlight-poweroff.service` (from
+2026-06-19) originally declared both `Before=shutdown.target` and
+`After=final.target`. Since `final.target` is itself `After=shutdown.target`,
+that is an ordering cycle, and systemd resolved it by **silently deleting the
+service's job at every shutdown** ("Job kbd-backlight-poweroff.service/start
+deleted to break ordering cycle" in the journal). The unit never ran even once.
+The blinking stayed fixed anyway from 2026-07-25 on because the
+`system-shutdown` hook covered it — until an update (systemd 259 landed
+2026-08-01, kernels 7.1.5→7.1.8 through August) made that path stop being
+sufficient and the poweroff blink returned. The unit was rewritten on
+2026-08-23 without the cycle; the sysfs write itself was verified working live
+the same day. To confirm it ran on the last shutdown:
+`journalctl -b -1 -u kbd-backlight-poweroff.service`.
+
+Kernels 7.1.x also added `leds_cros_ec`, which exposes two new EC LEDs
+(`chromeos:multicolor:charging`, `chromeos:white:power`), both on the
+`chromeos-auto` trigger. They are believed harmless, but they are the other
+recent EC-LED-related change if blinking symptoms ever shift to those LEDs.
 
 Neither is owned by a package — an OS upgrade will not recreate them. The suspend
 hook predates the shutdown one and also invokes
@@ -308,6 +328,80 @@ shows up as an oscillating number, while an EC-level flicker leaves it constant:
 ```bash
 watch -n0.1 cat /sys/class/leds/chromeos::kbd_backlight/brightness
 ```
+
+### 2026-08 regression root cause: EC-RW backlight driver left unregistered after an EC reset (2026-08-30)
+
+The kernel was **not** the change agent: 7.1.3/7.1.4 were already running in July
+when everything worked (journal), and the UEFI has been MrChromebox-2603.2 since at
+least 2026-07-15. What changed is the state of the EC.
+
+The EC runs a MrChromebox/chrultrabook EC-RW build (`gimble_v2.0.27860-0f0590ceec
+gimble_16238.2+tbt5 2025-10-12 chrultrabook`; RO is the factory `v2.0.19511`),
+loaded by coreboot's "EC Software Sync" (`google_chromeec_swsync()` in
+`src/ec/google/chromeec/ec_sync.c`; UEFI setup options `ec_sw_sync` = "EC Software
+Sync" and `ec_rw_jump` = "Use EC-RW Firmware" under "ChromeEC Embedded
+Controller"). That RW is unsigned, so EFS2 never jumps to it on its own; coreboot
+does a *late sysjump* into RW with the AP already in S0 on every boot that follows
+an EC reset (EC hibernate after >1 h in G3 on battery, battery cut-off). In
+`power/intel_x86.c` `power_chipset_init()` treats that as "already in S0" and fires
+no `HOOK_CHIPSET_STARTUP`, but `common/keyboard_backlight.c` registers its driver
+(`kblight_register(&kblight_pwm)`) **only** on `HOOK_CHIPSET_STARTUP` unless the
+board defines `CONFIG_KBLIGHT_HOOK_INIT` — gimble does not (MrChromebox added it to
+*mithrax* only, commit f1520542 of 2026-03-31, for exactly this reason). In that
+state every `kblight_set()`/`kblight_enable()` is a no-op: sysfs and ACPI writes
+are silently dropped, reads still succeed (they return the cached percent), and
+the PWM stays wherever `board_pwm_init()` left it (enabled, 50 %). The suspend and
+poweroff hooks therefore "successfully" write 0 while the EC keeps the PWM running,
+and with the EC deep-sleeping in S0ix/S5 (the KBLIGHT channel has no
+`PWM_CONFIG_DSLEEP`, so its clock stops and restarts) that shows as the
+breathing/flicker. Warm reboots do not clear it; a full poweroff → boot does —
+which is why the July fixes "worked", why brightness control comes and goes, and
+why the EC honoured writes again in the boot after the 2026-08-30 poweroff. Same
+board, same symptom, same cause: MrChromebox/firmware issue #952, where disabling
+"Use EC-RW Firmware" (EC stays in RO) fixed it.
+
+Verified live on 2026-08-30: EC uptime matched the 2026-08-28 boot exactly (EC
+reset flags HIBERNATE|WAKE_PIN|SYSJUMP|POWER_ON, no EFS → the RW jump came from
+the AP), and in the following boot a sysfs write of 0 makes the EC report
+`percent=0 enabled=0` (`ec-kblight --query`). EC state can be read without
+`ectool` through `/dev/cros_ec` (`CROS_EC_DEV_IOCXCMD`, 20-byte header); see
+`/usr/local/sbin/ec-kblight` and the diagnostic `ec-console-logger.service`
+(appends the EC console ring to `/var/log/ec-console.log`; the ring is only ~1 KB,
+about 2 minutes of battery chatter).
+
+Mitigations in place:
+
+- `/usr/local/sbin/ec-kblight <percent|--query>` sends `EC_CMD_PWM_SET_DUTY`
+  (type KB_LIGHT), which drives the PWM channel directly and works even when the
+  driver layer is unregistered. All three backlight hooks call it in addition to
+  the sysfs write (unit `ExecStart`, `system-shutdown` hook, `system-sleep` hook).
+- Lid close powers off (below). GNOME's own brightness keys still cannot work in
+  the degraded state; a full poweroff → boot restores them. Suspend can be
+  reconsidered now that the cause is known (note `CREC` / `GOOG0004` ACPI wake is
+  disabled by default in `/proc/acpi/wakeup`, which matters if s2idle is re-enabled
+  and lid-open should wake).
+
+Proper fix: `#define CONFIG_KBLIGHT_HOOK_INIT` in `board/gimble/board.h` of
+MrChromebox/chrome-ec (as done for mithrax) plus a rebuilt EC-RW; or disable "Use
+EC-RW Firmware" in the UEFI setup to stay on the factory RO (MrChromebox's help
+text warns USB-C/TBT accessories or the keyboard may misbehave on RO).
+
+### Lid close powers off (2026-08-30)
+
+`/etc/systemd/logind.conf.d/50-lid-poweroff.conf` sets `HandleLidSwitch`,
+`HandleLidSwitchExternalPower` and `HandleLidSwitchDocked` to `poweroff`; applied
+live with `systemctl reload systemd-logind` (`CanReload=yes` on systemd 259).
+Chosen by Jose after the breathing/drain episodes, before the root cause above
+was found. Caveats:
+
+- The EC boots the machine when the lid is opened while it is off
+  (`powerbtn_x86_lid_change()` in `common/power_button_x86.c` pulses the power
+  button whenever the chipset is off and the lid opens). EC firmware, cannot be
+  disabled from Linux: "open lid" means a cold boot.
+- GNOME still reaches suspend two other ways: the power button
+  (`power-button-action = suspend`) and 15 min of idle
+  (`sleep-inactive-{ac,battery}-type = suspend`, 900 s). `AllowSuspend=no` in
+  `/etc/systemd/sleep.conf.d/` would close every path at once; not applied.
 
 ## Known issues — not worth fixing
 
