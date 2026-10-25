@@ -356,3 +356,31 @@ provider**, so searching in Activities wakes it, and it pulls Flathub appstream 
 `dnf5daemon` + `flatpak-system-helper`. Fixed with
 `gsettings set org.gnome.desktop.search-providers disabled "['org.gnome.Software.desktop']"`
 (installed apps still show in search; only store suggestions are gone).
+
+### Second pass (2026-10-24, same evening)
+
+- **Cloudflare WARP removed** (`cloudflare-warp` + its repo): installed but never
+  registered, ~288 MB for `warp-svc` + `warp-taskbar`.
+- **Orphaned packages:** 53 removed by hand from the `dnf autoremove` list: anaconda and its
+  python libs, the `httpd` stack (pulled in by `gnome-user-share`), `libreport`/`satyr`
+  (abrt), `gupnp`/`libmediaart` (rygel), `pcp`, `libestr`/`libfastjson` (rsyslog),
+  `libmbim`/`libqmi` utils, `wezterm-mux-server`, `tmux`. **Kept on purpose** although
+  autoremove offers them: fonts (`liberation-fonts-all`, emoji, Symbola, Montserrat), `gdb`,
+  `wl-clipboard`, the python3 libs, `clevis`/`luks`, `libblockdev*`, multipath.
+- **Orphan files:** `agy.*.old` (224 MB), abrt spool (70 MB), coredumps (43 MB), stale
+  headless-Chrome temp dirs from Playwright, empty Remmina/WezTerm dirs, package caches.
+  373 MB freed on `/` in this pass.
+- **Broken config symlinks fixed:** `~/.config/btop/btop.conf` and
+  `~/.config/Code/User/{settings,keybindings,tasks}.json` pointed at
+  `/home/geekendzone/repos/fedora-workstation-replica/...`, a GeekForge path that does not
+  exist here. Replaced with real copies from `jacedeno/fedora-workstation-replica`
+  (`capture/dotfiles/`). That repo's replicate step should copy, not symlink to its own
+  checkout.
+- **`gnome-software --quit` is not a stop command**: if Software is not running it
+  D-Bus-activates it first. Stop it with
+  `systemctl --user stop 'dbus-:1.2-org.gnome.Software@*.service'`.
+- Left for Jose: `~/.config/google-chrome` is the removed RPM Chrome's profile and holds
+  `History` + `Login Data`; `~/Downloads` has a service-account JSON
+  (`excemca-esbd-poller-*.json`) and two copies of a Windows installer (`gamejoltclientsetup*.exe`, 171 MB).
+
+Measured after the reboot, Chrome open: **4.4–4.8 GB available** (3.8 before).
