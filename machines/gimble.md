@@ -349,3 +349,10 @@ Kept on purpose, still open questions for Jose: Cloudflare WARP (installed, unre
 Docker (disabled) and libvirt, GPaste, Maps/Weather/Contacts/Connections/Simple Scan,
 `localsearch`. RAM gains show after the next reboot: processes of removed packages and
 the daemons gnome-software woke keep running until then.
+
+**After the reboot, gnome-software came back anyway**, D-Bus-activated 30 s after login
+(`app.slice/dbus-:1.2-org.gnome.Software@0.service`): it is a GNOME Shell **search
+provider**, so searching in Activities wakes it, and it pulls Flathub appstream and wakes
+`dnf5daemon` + `flatpak-system-helper`. Fixed with
+`gsettings set org.gnome.desktop.search-providers disabled "['org.gnome.Software.desktop']"`
+(installed apps still show in search; only store suggestions are gone).
