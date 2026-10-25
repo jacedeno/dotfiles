@@ -478,3 +478,20 @@ provider**, so searching in Activities wakes it, and it pulls Flathub appstream 
   (`excemca-esbd-poller-*.json`) and two copies of a Windows installer (`gamejoltclientsetup*.exe`, 171 MB).
 
 Measured after the reboot, Chrome open: **4.4–4.8 GB available** (3.8 before).
+
+### Third pass (2026-10-24): parity with C2-B5
+
+- Removed Docker (`docker-ce*`, `containerd.io`, buildx/compose, the `docker` group and
+  repo; no images or data existed), the libvirt/qemu leftovers (`libvirt-libs`,
+  `libvirt-client`, `python3-libvirt`, `virt-install`; no VMs were defined) and GPaste
+  (a clipboard history, not a screenshot tool; its extension was never enabled).
+- The removed RPM Chrome's profile held 0 saved passwords, 3 history rows and no
+  bookmarks, so there was nothing to import into the Flatpak; deleted.
+- `~/Downloads/excemca-esbd-poller-*.json` was a byte-identical copy of the live
+  gov-contracts key; added to `homelab-secrets` (it was missing there) and deleted here.
+- Dotfiles pulled to the same commit as C2-B5 and `install.sh` re-run (with
+  `DOTFILES_GNOME_DOCK=0` on the command line: over SSH `~/.zshrc.local` is not read).
+  `~/.config/herdr/config.toml` replaced by C2-B5's (backup `config.toml.bak-2026-10-24`;
+  the old one had `status_indicators = "symbols"`); the unused `~/.oh-my-zsh` leftover
+  removed. Remaining differences are machine-local on purpose: `~/.zshrc.local`, and
+  Oh My Posh 31.9.1 here (`~/.local/bin`) vs 30.5.0 from the Fedora package on C2-B5.
