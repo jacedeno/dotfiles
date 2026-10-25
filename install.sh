@@ -280,7 +280,7 @@ fi
 # --- 4c. GNOME: Dash to Dock style ----------------------------------------------------
 # One dock look on every GNOME desktop that has the extension (gnome/dash-to-dock.ini).
 # Skipped without GNOME (GeekForge, Sama's WSL) or when ~/.zshrc.local exports
-# DOTFILES_GNOME_DOCK=0, which Santi's laptop does: his dock keeps its own layout.
+# DOTFILES_GNOME_DOCK=0 (nobody does today; Santi's laptop did until 2026-10-24).
 dtd=dash-to-dock@micxgx.gmail.com
 if [ "${DOTFILES_GNOME_DOCK:-1}" != 0 ] && command -v dconf >/dev/null 2>&1 && command -v gnome-extensions >/dev/null 2>&1; then
   # Over ssh there is no session bus in the environment; the running session's is here.

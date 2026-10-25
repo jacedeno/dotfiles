@@ -418,12 +418,13 @@ was found. Caveats:
   amps just run without their tuning blobs, which is the norm on Chromebooks
   outside ChromeOS.
 
-## Dock: opted out of the dotfiles style (2026-10-24)
+## Dock: the dotfiles style (2026-10-24)
 
-`install.sh` step 4c loads `gnome/dash-to-dock.ini` on every GNOME desktop, with the
-apps grid at the end of the dock. Santi's dock is the one that style was copied from, but
-his keeps the grid at the start, so `~/.zshrc.local` here exports `DOTFILES_GNOME_DOCK=0`.
-Remove that line only if Santi wants Jose's dock.
+`install.sh` step 4c loads `gnome/dash-to-dock.ini` on every GNOME desktop. That style was
+copied from this laptop's dock. For a few hours this machine opted out
+(`DOTFILES_GNOME_DOCK=0` in `~/.zshrc.local`) to keep the apps grid at the start; Jose then
+moved the grid to the end here by hand, as on C2-B5, so the opt-out was removed the same
+evening. The dock is now byte-identical to C2-B5's (`dconf dump`, except the monitor key).
 
 ## Debloat (2026-10-24)
 
