@@ -297,6 +297,17 @@ if [ "${DOTFILES_GNOME_DOCK:-1}" != 0 ] && command -v dconf >/dev/null 2>&1 && c
   fi
 fi
 
+# --- 4d. herdr-app (GUI) -------------------------------------------------------------
+# Only where herdr-app is installed and has been started once (it writes its config
+# directory on first launch). Merges the launcher keys, the four launcher mods and
+# the gruvbox theme; see docs/herdr-app.md.
+link "$DOTFILES/bin/herdr-app-config" "$HOME/.local/bin/herdr-app-config"
+chmod +x "$DOTFILES/bin/herdr-app-config"
+if [ -d "$HOME/.config/herdr-app" ]; then
+  log "Applying herdr-app overrides..."
+  "$DOTFILES/bin/herdr-app-config" >/dev/null || warn "herdr-app-config failed - run it by hand"
+fi
+
 # --- 5. History file -----------------------------------------------------------------
 touch "$HOME/.zsh_history" && chmod 600 "$HOME/.zsh_history"
 

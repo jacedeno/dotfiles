@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Apply the dotfiles herdr-app overrides to ~/.config/herdr-app (docs/herdr-app.md).
+#
+# herdr-app writes its own keys.json and settings.json full of defaults, so this
+# never replaces them: it merges in only the keys listed in dotfiles/herdr-app/
+# (ours win, everything else is kept). The four launcher mods and the gruvbox theme
+# are copied whole. Idempotent; the files it changes are backed up first.
+#
+# The theme picked in the app UI is stored in layouts/.state/ and overrides
+# settings.json, so the dark theme is also set through the running app when one is up.
+set -euo pipefail
+
+src="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/herdr-app"
+dst="$HOME/.config/herdr-app"
+[ -d "$src" ] || { echo "herdr-app-config: $src not found" >&2; exit 1; }
+[ -d "$dst" ] || { echo "herdr-app-config: $dst not found - start herdr-app once first" >&2; exit 1; }
+
+backup="$HOME/.dotfiles-backup/herdr-app-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$backup"
+cp -a "$dst/keys.json" "$dst/settings.json" "$backup/" 2>/dev/null || true
+
+python3 - "$src" "$dst" <<'PY'
+import json, os, sys
+src, dst = sys.argv[1:3]
+def merge(base, over):
+    for k, v in over.items():
+        if isinstance(v, dict) and isinstance(base.get(k), dict):
+            merge(base[k], v)
+        else:
+            base[k] = v
+    return base
+for name in ("keys.json", "settings.json"):
+    path = os.path.join(dst, name)
+    try:
+        with open(path) as f:
+            cur = json.load(f)
+    except FileNotFoundError:
+        cur = {}
+    with open(os.path.join(src, name)) as f:
+        new = merge(json.loads(json.dumps(cur)), json.load(f))
+    if new != cur:
+        tmp = path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(new, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        os.replace(tmp, path)
+        print(f"herdr-app-config: merged {name}")
+PY
+
+mkdir -p "$dst/mods" "$dst/themes"
+for m in "$src"/mods/*/; do
+  name="$(basename "$m")"
+  mkdir -p "$dst/mods/$name"
+  cp -f "$m"main.js "$m"mod.json "$dst/mods/$name/"
+done
+cp -f "$src"/themes/*.json "$dst/themes/"
+
+herdr_app="$(command -v herdr-app || echo "$HOME/.local/bin/herdr-app")"
+if [ -x "$herdr_app" ]; then
+  # Needs a running window; without one the theme comes from settings.json alone.
+  "$herdr_app" do app.theme --name gruvbox >/dev/null 2>&1 || true
+  for m in "$src"/mods/*/; do
+    "$herdr_app" check "$dst/mods/$(basename "$m")" >/dev/null 2>&1 \
+      || echo "herdr-app-config: herdr-app check failed for mod $(basename "$m") - run it by hand" >&2
+  done
+fi
+echo "herdr-app-config: done (backup in $backup)"

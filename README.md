@@ -262,12 +262,15 @@ Notes:
 ├── bin/mount-excemca         # mount a GeekLab SMB share — excemca (default) or -f for Family Share
 ├── bin/herdr-update          # update herdr from inside a herdr pane — live handoff, panes survive
 ├── bin/yazi-update           # install/upgrade yazi in ~/.local/bin from the upstream release
+├── bin/herdr-app-config      # merge the herdr-app overrides into ~/.config/herdr-app (idempotent)
+├── herdr-app/                # herdr-app GUI overrides: launcher keys, four launcher mods, gruvbox theme
 ├── claude/statusline.py      # Claude Code status line — model, effort, repo/branch, context bar, cost, cache, rate limits
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── docs/
 │   ├── yazi.md               # tree + yazi: browsing files as a hierarchy in the terminal, keys and usage
 │   ├── yazi-cheatsheet.html  # the same keys as a printable one-page cheatsheet
-│   └── herdr-sidebar.md      # VS Code-style sidebar plugin for herdr (on trial) — keys, rollout, removal
+│   ├── herdr-sidebar.md      # VS Code-style sidebar plugin for herdr (on trial) — keys, rollout, removal
+│   └── herdr-app.md          # herdr-app GUI — the migrated keys, launcher mods, theme, and the PATH-clobber trap
 ├── machines/                 # per-machine hardware notes (docs only, never installed)
 │   ├── gimble.md             # Santi's laptop: Chromebook + MrChromebox running Fedora — Alacritty+herdr
 │   └── ThinkPadT470.md       # personal work laptop, Fedora — Alacritty+herdr terminal swap

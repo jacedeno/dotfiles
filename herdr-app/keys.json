@@ -1,0 +1,8 @@
+{
+  "global": {
+    "ctrl-shift-y": "mod.open:yazi-split",
+    "ctrl-alt-y": "mod.open:yazi-tab",
+    "ctrl-shift-f": "mod.open:panel-files",
+    "ctrl-shift-d": "mod.open:panel-changes"
+  }
+}
