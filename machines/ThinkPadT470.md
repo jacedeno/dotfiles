@@ -158,6 +158,15 @@ the office, on GeekSpot's WiFi, next to the sniffer and the bench units.
     again or the laptop reboots. That is Jose's choice** (2026-11-02): on by
     default, and a manual off is respected. Remotely, bring it back with
     `ssh -J root@10.80.0.5 cedenoj@<GeekSpot address> sudo nmcli connection up GeekLab`.
+  - **Off at home, automatically** (`/etc/NetworkManager/dispatcher.d/50-geeklab-home`,
+    2026-11-02). On the house LAN, GeekLab's `192.168.68.0/24` route (metric
+    50) beats the Wi-Fi's (600) and would send house traffic out and back
+    through the tunnel. So when any other interface holds a `192.168.68.x`
+    address, the script takes GeekLab down and leaves `/run/geeklab-auto-off`;
+    on any other network it brings GeekLab back only if that marker exists. A
+    manual off leaves no marker, so it stays off. Logs under
+    `journalctl -t geeklab-home`. Tested by faking the house subnet with
+    `GEEKLAB_HOME_NET=192.168.8.`; the real switch at home is untested.
   - **Tried and undone the same day:** a `wg-quick@GeekLab` unit with the
     interface unmanaged by NetworkManager, which hid it from GNOME's menu.
     Jose wanted the button back. Before that, a `wg-quick@wg0` that NM had
