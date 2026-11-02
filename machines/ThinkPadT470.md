@@ -141,36 +141,30 @@ the office, on GeekSpot's WiFi, next to the sniffer and the bench units.
   laptop, and the peer's public key was swapped on CT 104, keeping its name and
   address (`geeklab-infra/docs/wireguard-lxc-104.md`, "Changing an imported
   peer's public key").
-- **`wg-quick@GeekLab`, not NetworkManager, and hidden from GNOME's menu**
-  (since 2026-11-02 10:19). The tunnel and its interface are named `GeekLab`,
-  as on Jose's other PCs. Config in `/etc/wireguard/GeekLab.conf` (root, 0600,
-  the only copy of the private key). The unit is enabled, so the tunnel is up
-  at boot before anyone logs in (proven by a reboot the same morning). A
-  drop-in, `wg-quick@GeekLab.service.d/retry.conf`, restarts it every 30 s on
-  failure, because at boot WiFi or DNS may not be ready when wg-quick resolves
-  the endpoint.
-  - `/etc/NetworkManager/conf.d/90-geeklab-unmanaged.conf` makes the
-    interface `unmanaged`. With no NM profile, GNOME has nothing to list or
-    switch off.
+- **A NetworkManager profile named `GeekLab`**, as on Jose's other PCs, with
+  the interface of the same name, in GNOME's menu. System-wide
+  (`connection.permissions` empty), `autoconnect yes` and
+  `autoconnect-retries 0` (retry forever), so it is up at boot before anyone
+  logs in. The private key lives only in
+  `/etc/NetworkManager/system-connections/GeekLab.nmconnection` (root, 0600).
   - Address `10.0.0.6/32`, endpoint `vpn.geekendzone.net:51820`, keepalive
     25 s, MTU 1380 (the uplink is GeekSpot's LTE).
-  - **Split tunnel:** `AllowedIPs = 10.0.0.0/24, 192.168.68.0/24,
-    192.168.30.0/24`; wg-quick routes them. CT 104 does not NAT toward `wg0`,
-    so the house subnets must be listed for GeekForge (`.68`) and C2-B5
-    (VLAN 30) to get answers. The laptop's internet stays on GeekSpot, so a
-    dead tunnel never takes its DNS with it.
-  - **Why not NetworkManager:** the first setup that day was an NM profile
-    named `GeekLab`, which GNOME lists. It was switched off from gnome-shell's
-    menu three times in one morning (`user-requested`), and each time it stayed
-    off until brought back over GeekSpot. Before that, a `wg-quick@wg0` that
-    NM had adopted lost `10.0.0.6` and its routes to the same click while the
-    handshake carried on, so the peer looked alive on CT 104 and nothing
-    answered. Making the interface unmanaged closes both. The old NM keyfile
-    is kept as `/root/GeekLab.nmconnection.bak-20261102-101904`; the switch script
-    (with its automatic rollback) is `/usr/local/sbin/geeklab-switch.sh`, log
-    in `/root/geeklab-switch.log`.
-  - Restart it with `sudo systemctl restart wg-quick@GeekLab`; state with
-    `sudo wg show GeekLab`.
+  - **Split tunnel:** peer allowed IPs `10.0.0.0/24, 192.168.68.0/24,
+    192.168.30.0/24`, routed by `wireguard.peer-routes`. CT 104 does not NAT
+    toward `wg0`, so the house subnets must be listed for GeekForge (`.68`) and
+    C2-B5 (VLAN 30) to get answers. The laptop's internet stays on GeekSpot,
+    so a dead tunnel never takes its DNS with it.
+  - **Switching it off in GNOME's menu keeps it off until it is switched on
+    again or the laptop reboots. That is Jose's choice** (2026-11-02): on by
+    default, and a manual off is respected. Remotely, bring it back with
+    `ssh -J root@10.80.0.5 cedenoj@<GeekSpot address> sudo nmcli connection up GeekLab`.
+  - **Tried and undone the same day:** a `wg-quick@GeekLab` unit with the
+    interface unmanaged by NetworkManager, which hid it from GNOME's menu.
+    Jose wanted the button back. Before that, a `wg-quick@wg0` that NM had
+    adopted lost `10.0.0.6` and its routes to a menu click while the
+    handshake carried on (the peer looked alive on CT 104 and nothing
+    answered), so never let NM and wg-quick share the interface. The switch
+    scripts are `/usr/local/sbin/geeklab-switch.sh` and `geeklab-to-nm.sh`.
 - **Endpoint re-resolve:** `wg-reresolve-dns@GeekLab.timer` runs every 2
   minutes `/usr/local/sbin/wg-reresolve-dns.sh
   /etc/wireguard-reresolve/GeekLab.conf`, a copy of wireguard-tools'
@@ -271,26 +265,57 @@ Native installer (`~/.local/bin/claude`, 2.1.316) and `uv` 0.13.6.
   (`~/.google_workspace_mcp`, `~/.workspace-mcp`) copied from GeekForge; `rea`.
   The claude.ai connectors come with the claude.ai login.
 
-### Terminal and dock, as on C2-B5 / BD-1 (2026-11-02)
+### Terminal, dock and desktop, as on BD-1 (2026-11-02)
 
-BD-1 was off (no handshake for 14 h), so C2-B5, on the same dotfiles, was
-the reference.
+Copied from BD-1 over the house LAN (`192.168.68.64`). herdr and yazi came from
+C2-B5 first, while BD-1 was unreachable.
 
 - **The repo's aliases were already loaded** (51). `~/.zshrc.local` gained
-  `claude-yolo`, the PlatformIO `PATH`, and uv's `. ~/.local/bin/env`, which
-  uv's installer had appended to the tracked `zsh/.zshrc` (reverted there).
-- **herdr 0.9.5, herdr-core (`hc`), herdr-app 0.1.11 and yazi 26.9.1** copied
-  from C2-B5 into `~/.local/bin` and `~/.local/share/herdr-app`, with
-  herdr-app's `.desktop` entry and icon. Alacritty's `terminal.shell = herdr`
-  had nothing to launch until then. `install.sh` was run again (herdr-yazi and
-  herdr-sidebar plugins and keys, the Dash to Dock style), then
-  `herdr-app-config`.
-- **Dock (`favorite-apps`):** C2-B5's order, minus its Chrome web apps
-  (WhatsApp Web, Messages, Teams, NuPhyIO, which Jose installs from his
-  Chrome), plus KiCad: Chrome, Files, Alacritty, Herdr, Text Editor,
-  ONLYOFFICE, Telegram, Thunderbird, Zoom, Discord, VLC, FreeCAD, KiCad,
-  Settings, Software, Calculator. Telegram is the Flathub app, installed
-  system-wide.
-- **Clipboard Indicator** (`clipboard-indicator@tudmotu.com`) copied from
-  C2-B5 into `~/.local/share/gnome-shell/extensions` and enabled. GNOME
-  loads it from the next login.
+  `claude-yolo`, the PlatformIO and opencode `PATH`s, nvm, and uv's
+  `. ~/.local/bin/env`, which uv's installer had appended to the tracked
+  `zsh/.zshrc` (reverted there). BD-1's Android lines (`ANDROID_HOME`, the
+  `emulator` alias) are left out: no Android Studio here (Jose's call).
+- **herdr 0.9.5, herdr-core (`hc`), herdr-app 0.1.11 and yazi 26.9.1** in
+  `~/.local/bin` and `~/.local/share/herdr-app`, with herdr-app's `.desktop`
+  entry and icon. Alacritty's `terminal.shell = herdr` had nothing to launch
+  until then. `install.sh` was run again (herdr-yazi and herdr-sidebar
+  plugins and keys, the Dash to Dock style), then `herdr-app-config`.
+- **Dock (`favorite-apps`), BD-1's:** Chrome, Files, Alacritty, VS Code, Text
+  Editor, WhatsApp Web, Thunderbird, Microsoft Teams, Zoom, Discord, VLC,
+  ONLYOFFICE, Settings, Software, Calculator. Left out: Android Studio and
+  Cloudflare WARP (both removed from this laptop). The two Chrome web-app
+  launchers were copied from BD-1; the apps themselves come with Chrome's
+  sync. Outlook's launcher was deleted on both laptops (Jose's call).
+- **Desktop:** the GeekendZone wallpaper (`~/.local/share/backgrounds/`,
+  `zoom`, also the lock screen); battery percentage hidden.
+- **`~/.ssh`:** BD-1's keys (`id_ed25519`, `id_ed25519_github`,
+  `id_ed25519_iot-150-root`, `id_ed25519_k3s-master`) and its `config`
+  (`github.com` over port 443, `homepage`, `docker`, `geekforge`, `laptop`,
+  `octopi`), plus `t470`. **Wipe them from BD-1 before it is sold.** The
+  repos under `~/repos` are cloned over SSH with that GitHub key.
+- **No Clipboard Indicator:** copied from C2-B5 first, but v71 crashes on
+  GNOME Shell 51 (`Clutter.get_default_backend is not a function`) and BD-1
+  does not have it, so it was removed. Telegram, herdr-app and KiCad stay
+  installed but are not in the dock.
+
+### Bench services (2026-11-02, moved from BD-1)
+
+- **`ctc-watch.timer`** (geekvibe, every 15 min, read-only SSH to the bench
+  ACCESS2000 `192.168.8.229:20022`) and **`perma-advert-log.timer`** (auto-lubes,
+  hourly, the nRF Sniffer on `/dev/ttyACM0`), as user units in
+  `~/.config/systemd/user/`, with `ctc-watch.service.d/until.conf`
+  (`CTC_WATCH_UNTIL=2026-11-05T12:00:00Z`). Lingering is on for `cedenoj`.
+  Both were disabled on BD-1, and their data (`geekvibe/data/ctc-watch/`,
+  `auto-lubes/data/captures/perma-advert-log.csv`) copied over.
+- **USB:** `cedenoj` is in `dialout`; `/etc/udev/rules.d/99-platformio-udev.rules`
+  (PlatformIO's) and `70-nrf-sniffer.rules` (the sniffer's tty, mode 0666, so
+  the user timers can open it without a fresh login).
+- **Toolchain:** PlatformIO Core 6.2.0 (`~/.platformio/penv`, from
+  `get-platformio.py`), the cycle-counter (`m5tough`, `ws5b`) and cycle-pulser
+  (`xiao`) builds run once so the platforms are already downloaded; `nrfutil`
+  8.2.1 with `ble-sniffer` 0.22.0; `uv` with `bleak` cached for
+  `gatt_check.py`. The auto-lubes tool tests pass and `ble_scan.py` sees
+  adverts through the internal adapter (`34:41:5D:1A:A1:11`).
+- **`gh`:** the token is stored in GNOME's keyring, which autologin leaves
+  locked, so it is lost on every reboot. Log in with
+  `gh auth login --insecure-storage`. Git itself uses BD-1's GitHub SSH key.
