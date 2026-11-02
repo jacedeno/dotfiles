@@ -127,3 +127,170 @@ GM/GP/GV GPUs.
 
 The pre-clone state (dconf dump, RPM and flatpak lists) is kept in
 `~/pre-restore-backup/` on the laptop.
+
+## The bench laptop at the office (2026-11-02)
+
+BD-1 is being sold, so the T470 takes over as the bench machine: it stays on at
+the office, on GeekSpot's WiFi, next to the sniffer and the bench units.
+
+### WireGuard: `wg0` peer "ThinkPadT470", `10.0.0.6`
+
+- **The old key was gone.** The clone from BD-1 left `/etc/wireguard` empty and
+  no WireGuard profile in NetworkManager, and WG-Dashboard never stored the
+  private key of this imported peer. A new key pair was generated on the
+  laptop, and the peer's public key was swapped on CT 104, keeping its name and
+  address (`geeklab-infra/docs/wireguard-lxc-104.md`, "Changing an imported
+  peer's public key").
+- **`wg-quick@GeekLab`, not NetworkManager, and hidden from GNOME's menu**
+  (since 2026-11-02 10:19). The tunnel and its interface are named `GeekLab`,
+  as on Jose's other PCs. Config in `/etc/wireguard/GeekLab.conf` (root, 0600,
+  the only copy of the private key). The unit is enabled, so the tunnel is up
+  at boot before anyone logs in (proven by a reboot the same morning). A
+  drop-in, `wg-quick@GeekLab.service.d/retry.conf`, restarts it every 30 s on
+  failure, because at boot WiFi or DNS may not be ready when wg-quick resolves
+  the endpoint.
+  - `/etc/NetworkManager/conf.d/90-geeklab-unmanaged.conf` makes the
+    interface `unmanaged`. With no NM profile, GNOME has nothing to list or
+    switch off.
+  - Address `10.0.0.6/32`, endpoint `vpn.geekendzone.net:51820`, keepalive
+    25 s, MTU 1380 (the uplink is GeekSpot's LTE).
+  - **Split tunnel:** `AllowedIPs = 10.0.0.0/24, 192.168.68.0/24,
+    192.168.30.0/24`; wg-quick routes them. CT 104 does not NAT toward `wg0`,
+    so the house subnets must be listed for GeekForge (`.68`) and C2-B5
+    (VLAN 30) to get answers. The laptop's internet stays on GeekSpot, so a
+    dead tunnel never takes its DNS with it.
+  - **Why not NetworkManager:** the first setup that day was an NM profile
+    named `GeekLab`, which GNOME lists. It was switched off from gnome-shell's
+    menu three times in one morning (`user-requested`), and each time it stayed
+    off until brought back over GeekSpot. Before that, a `wg-quick@wg0` that
+    NM had adopted lost `10.0.0.6` and its routes to the same click while the
+    handshake carried on, so the peer looked alive on CT 104 and nothing
+    answered. Making the interface unmanaged closes both. The old NM keyfile
+    is kept as `/root/GeekLab.nmconnection.bak-20261102-101904`; the switch script
+    (with its automatic rollback) is `/usr/local/sbin/geeklab-switch.sh`, log
+    in `/root/geeklab-switch.log`.
+  - Restart it with `sudo systemctl restart wg-quick@GeekLab`; state with
+    `sudo wg show GeekLab`.
+- **Endpoint re-resolve:** `wg-reresolve-dns@GeekLab.timer` runs every 2
+  minutes `/usr/local/sbin/wg-reresolve-dns.sh
+  /etc/wireguard-reresolve/GeekLab.conf`, a copy of wireguard-tools'
+  `contrib/reresolve-dns` fed a file with only the peer's public key and
+  endpoint (no private key). It sets the endpoint again from the hostname when
+  the last handshake is older than 135 s, so the tunnel follows a change of the
+  house WAN (WireGuard resolves the name only once on its own). While the
+  laptop has no internet it fails every 2 minutes ("Name or service not
+  known"); that is the symptom, not the cause.
+- **WiFi power save is off** (`/etc/NetworkManager/conf.d/80-wifi-powersave-off.conf`,
+  `wifi.powersave = 2`). On 2026-11-02 10:27 the laptop stayed associated to
+  GeekSpot (−45 dBm) but sent nothing for minutes, NM reported
+  `CONNECTED_SITE`, and only a reboot brought it back. No `iwlwifi` error was
+  logged and GeekSpot's LTE was up the whole time. Power save on the Intel
+  8260 is the usual suspect, and the bench runs on AC anyway. If it happens
+  again, the cause is something else.
+- **firewalld:** `GeekLab` is in the default `FedoraWorkstation` zone, which
+  allows SSH.
+- **From GeekForge:** `ssh t470` (`10.0.0.6`, user `cedenoj`, GeekForge's key
+  in `authorized_keys`). The host key is the same as over GeekSpot.
+- **Fallback through GeekSpot:** `ssh -J root@10.80.0.5 cedenoj@<address>`.
+  The MAC is stable per SSID (Fedora's `wifi.cloned-mac-address=stable-ssid`),
+  so `GeekSpot` and `GeekSpot5G` give it two different addresses
+  (`192.168.8.199` and `.186` on 2026-11-02). GeekSpot's `/tmp/dhcp.leases`
+  lists it as `ThinkPadT470`.
+
+### Staying on
+
+- **On AC it never suspends:** GNOME's `sleep-inactive-ac-type` is `nothing`
+  for `cedenoj`, and also for the login screen
+  (`/etc/dconf/db/gdm.d/95-bench-power`, then `dconf update`).
+- **Lid closed on AC:** ignored
+  (`/etc/systemd/logind.conf.d/50-bench-lid.conf`,
+  `HandleLidSwitchExternalPower=ignore`).
+- **On battery nothing changed:** idle and the lid still suspend it, so it has
+  to stay plugged in to be reachable.
+
+### Trimmed for the old CPU (2026-11-02)
+
+An i7-6600U (2 cores, 4 threads, 2016) with 32 GB: memory is plenty, CPU is
+not. Snapper snapshot **#283** ("before bench cleanup") was taken first.
+
+- **Removed, 227 packages** (`dnf remove --no-autoremove`, then only the
+  leftovers that clearly came with them):
+  - Cloudflare WARP, Docker (`docker-ce` and plugins, `/var/lib/docker`, the
+    `docker` group), libvirt with GNOME Boxes and virt-manager, QEMU;
+  - the NVIDIA 580xx driver (Jose's call: the bench needs no dGPU). The kernel
+    arguments that blacklisted nouveau and the hand-made
+    `/etc/modprobe.d/blacklist-nouveau.conf` (kept as
+    `/root/blacklist-nouveau.conf.removed-20261102`) went with it, and the
+    initramfs was rebuilt. nouveau now runtime-suspends the 940MX when idle;
+  - the VM guest agents (QEMU, VMware, VirtualBox, SPICE), the live-image
+    services, iSCSI, Stratis, sssd, ModemManager (no modem), abrt and its
+    libreport plugins, the Anaconda installer, `ibus-typing-booster`, sysstat.
+  - **Not autoremoved:** dnf5 offered 288 more "unused" packages, among them
+    `gdb`, `patch`, `wl-clipboard`, emoji fonts, `dnf-plugins-core` and
+    `cryptsetup`. `libreport-filesystem` stays because `mdadm` (and through it
+    `udisks2` and GNOME) needs it.
+- **Off in the background:** `gnome-software` (masked user service, no
+  automatic downloads) and with it PackageKit and `dnf5daemon`;
+  `dnf-makecache.timer`; `localsearch-3` (masked, index erased); `mdmonitor`,
+  `raid-check.timer` and `lvm2-monitor` (no RAID, no LVM). Updates are manual:
+  `sudo dnf upgrade`.
+- **Kept:** `evolution-data-server` (gnome-shell requires it), Podman (the
+  geekvibe gateway tests run in it), snapper.
+- **GNOME:** animations off; power profile `performance` (tuned
+  `throughput-performance`).
+
+| | Before | After |
+| :--- | ---: | ---: |
+| Boot (`systemd-analyze`) | 57.3 s | 39.2 s |
+| Userspace | 21.6 s | 10.3 s |
+| RAM used at idle | 2231 MB | 1539 MB |
+| Enabled system services | 69 | 42 |
+| Processes | 289 | 263 |
+
+Measured "before" at 31 minutes of uptime and "after" at 4 minutes, so the
+after figures are if anything high.
+
+### Claude Code (2026-11-02)
+
+Native installer (`~/.local/bin/claude`, 2.1.316) and `uv` 0.13.6.
+
+- **Skills (46):** `claude-code-skills` copied from GeekForge to
+  `~/repos/claude-code-skills` and `install.sh` run; GeekForge's skills that
+  are not in that installer (superpowers, archify, heygen and others) copied
+  over with `~/.agents/skills`. The "PromptScript does not support global
+  skill installation" failures in its log concern another agent, not Claude
+  Code.
+- **Settings:** `install-settings.sh` (Concise, the status line), plus
+  `attribution` empty for commits and PRs, as on GeekForge (the repo's
+  `preferences.json` does not carry it).
+- **MCP servers, as on GeekForge** (Jose's call: the office is safe for
+  them): `grafana` (`grafana.excemca.com`) and `grafana-iot`
+  (`192.168.68.150:3000`, over `GeekLab`) with their tokens in
+  `~/.grafana-mcp-token` and `~/.grafana-iot-mcp-token`; `google-workspace`
+  with `~/.config/geekendzone/google-workspace.env` and its OAuth state
+  (`~/.google_workspace_mcp`, `~/.workspace-mcp`) copied from GeekForge; `rea`.
+  The claude.ai connectors come with the claude.ai login.
+
+### Terminal and dock, as on C2-B5 / BD-1 (2026-11-02)
+
+BD-1 was off (no handshake for 14 h), so C2-B5, on the same dotfiles, was
+the reference.
+
+- **The repo's aliases were already loaded** (51). `~/.zshrc.local` gained
+  `claude-yolo`, the PlatformIO `PATH`, and uv's `. ~/.local/bin/env`, which
+  uv's installer had appended to the tracked `zsh/.zshrc` (reverted there).
+- **herdr 0.9.5, herdr-core (`hc`), herdr-app 0.1.11 and yazi 26.9.1** copied
+  from C2-B5 into `~/.local/bin` and `~/.local/share/herdr-app`, with
+  herdr-app's `.desktop` entry and icon. Alacritty's `terminal.shell = herdr`
+  had nothing to launch until then. `install.sh` was run again (herdr-yazi and
+  herdr-sidebar plugins and keys, the Dash to Dock style), then
+  `herdr-app-config`.
+- **Dock (`favorite-apps`):** C2-B5's order, minus its Chrome web apps
+  (WhatsApp Web, Messages, Teams, NuPhyIO, which Jose installs from his
+  Chrome), plus KiCad: Chrome, Files, Alacritty, Herdr, Text Editor,
+  ONLYOFFICE, Telegram, Thunderbird, Zoom, Discord, VLC, FreeCAD, KiCad,
+  Settings, Software, Calculator. Telegram is the Flathub app, installed
+  system-wide.
+- **Clipboard Indicator** (`clipboard-indicator@tudmotu.com`) copied from
+  C2-B5 into `~/.local/share/gnome-shell/extensions` and enabled. GNOME
+  loads it from the next login.
