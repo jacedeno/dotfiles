@@ -320,6 +320,36 @@ extract() {
   fi
 }
 
+# Wake C2-B5 (desktop on VLAN 30) with Wake-on-LAN and wait until it answers.
+# The magic packet has to leave from inside VLAN 30, so this asks the k3s pod `c2b5-wol`
+# (geeklab-infra kubernetes/wol/c2b5-wol.yaml) to send it; its NodePort answers on every
+# node, so a down master falls through to the next. Works from anywhere on the LAN or the
+# WireGuard tunnel. Usage: wake-c2b5 && ssh c2b5
+wake-c2b5() {
+  local host=192.168.30.7 node sent i
+  if ping -c1 -W2 "$host" >/dev/null 2>&1; then
+    echo "C2-B5 is already awake"
+    return 0
+  fi
+  for node in 192.168.30.10 192.168.30.11 192.168.30.12; do
+    curl -fsS -m 4 -o /dev/null "http://$node:30909/wake" 2>/dev/null && { sent=$node; break; }
+  done
+  if [ -z "$sent" ]; then
+    echo "wake-c2b5: no k3s node answered on :30909" >&2
+    return 1
+  fi
+  echo "Magic packet sent via $sent, waiting for C2-B5..."
+  for i in {1..24}; do
+    if ping -c1 -W2 "$host" >/dev/null 2>&1; then
+      echo "C2-B5 is up (~$((i * 5)) s)"
+      return 0
+    fi
+    sleep 3
+  done
+  echo "wake-c2b5: no answer after ~2 min" >&2
+  return 1
+}
+
 # --- Syntax highlighting (must load last among plugins) -----------------------------
 if [ -f "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
   source "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
