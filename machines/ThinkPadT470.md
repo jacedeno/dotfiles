@@ -232,11 +232,16 @@ not. Snapper snapshot **#283** ("before bench cleanup") was taken first.
     `gdb`, `patch`, `wl-clipboard`, emoji fonts, `dnf-plugins-core` and
     `cryptsetup`. `libreport-filesystem` stays because `mdadm` (and through it
     `udisks2` and GNOME) needs it.
+    **Correction (2026-11-10):** `dnf history` has a `dnf autoremove -y` from
+    that same day (transaction 123, 153 packages) that did remove `gdb`,
+    `patch`, `wl-clipboard`, `dnf-plugins-core` and `cryptsetup`. None of them
+    is installed. The emoji fonts are.
 - **Off in the background:** `gnome-software` (masked user service, no
   automatic downloads) and with it PackageKit and `dnf5daemon`;
   `dnf-makecache.timer`; `localsearch-3` (masked, index erased); `mdmonitor`,
   `raid-check.timer` and `lvm2-monitor` (no RAID, no LVM). Updates are manual:
-  `sudo dnf upgrade`.
+  `sudo dnf upgrade`. (The mask did not hold; Software, PackageKit and
+  `dnf5daemon` were uninstalled on 2026-11-10, see the second trim.)
 - **Kept:** `evolution-data-server` (gnome-shell requires it), Podman (the
   geekvibe gateway tests run in it), snapper.
 - **GNOME:** animations off; power profile `performance` (tuned
@@ -252,6 +257,82 @@ not. Snapper snapshot **#283** ("before bench cleanup") was taken first.
 
 Measured "before" at 31 minutes of uptime and "after" at 4 minutes, so the
 after figures are if anything high.
+
+### Second trim: unused apps and background services (2026-11-10)
+
+The same goal as on 2026-11-02: nothing installed or running that the bench
+does not use. Disk space was not the reason (320 GB were free).
+
+- **Removed (Jose's calls):**
+  - Zed (`~/.local/zed.app`, its launcher and `~/.config/zed`) and WezTerm
+    (the four `wezterm*` packages and the `wezfurlong/wezterm-nightly` COPR
+    repo). `~/.config/wezterm/wezterm.lua` is still there.
+  - Blender, `kicad-packages3d` (3.2 GB of 3D models; KiCad stays and works
+    without them), the Antigravity IDE, Deskreen CE, VS Code, MQTTX, Cura,
+    GNOME Maps and Contacts. The `antigravity` and `vscode` repo files,
+    `~/.vscode` and `~/.config/Code` went too. The `agy` CLI in
+    `~/.local/bin` is a separate binary and still runs.
+  - Flatpaks: Podman Desktop, and the Fedora Media Writer and Extensions
+    duplicates (the RPMs stay), then the three runtimes left unused.
+  - `toolbox`, and Docker's last leftovers (`~/.docker`, an empty
+    `/opt/containerd`).
+  - **GNOME Software, PackageKit (with `PackageKit-command-not-found`) and
+    `dnf5daemon-server`.** Software was running despite the 2026-11-02 mask,
+    about 600 MB with the other two. This laptop never got the user D-Bus
+    service file or the search-provider setting from
+    `geeklab-infra/docs/low-ram-laptop-fedora.md`, which leaves D-Bus
+    activation open. Its dock entry went with it. Flatpaks now update by hand
+    as well (`flatpak update`), and a mistyped command no longer offers a
+    package to install.
+  - `rsyslog` (53 MB; journald already has everything) and `hyperv-daemons`.
+- **Off, not removed:**
+  - `cups` (`cups.socket`, `cups.path`, `cups.service`; no printer is
+    configured). Back with `sudo systemctl enable --now cups.socket cups.path`.
+  - `colord`, masked.
+  - Location services (`org.gnome.system.location enabled false`, and the
+    `geoclue-demo-agent` autostart hidden as in `debloat.sh`). geoclue no
+    longer runs. Night Light keeps its automatic schedule from the
+    coordinates it had cached.
+  - **`ctc-watch.timer`, disabled.** `CTC_WATCH_UNTIL` ran out on 2026-11-05
+    and it was waking every 15 minutes to do nothing. The units and
+    `until.conf` are still in `~/.config/systemd/user/`. To use it again: set
+    a new date in `ctc-watch.service.d/until.conf`, then
+    `systemctl --user daemon-reload` and
+    `systemctl --user enable --now ctc-watch.timer`. `perma-advert-log.timer`
+    is untouched.
+- **Kept:**
+  - **Podman.** Removed in the morning and reinstalled the same day (6.1.3,
+    without `toolbox` or Podman Desktop), because the geekvibe tests need it
+    (`gateway/cassia-app/tests/run_tests.sh`,
+    `tools/access2000-bench/tests/run_tests.sh`). It has no daemon, so it
+    costs nothing while idle. A rootless `podman run` was checked; the tests
+    themselves were not run again. There were no images before or after: the
+    tests build `autolube-test:focal` when they run.
+  - `mosquitto`: the broker is not enabled, and with MQTTX gone
+    `mosquitto_pub` and `mosquitto_sub` are the only MQTT clients here.
+  - `opencascade-draw`: KiCad requires it, so removing it takes KiCad.
+  - OpenSCAD: it had come in as a dependency of Cura and is now marked as
+    user-installed.
+- **Autoremove ran this time, unlike on 2026-11-02.** Removing Cura with
+  dnf's default cleanup took about 455 dependencies with it: TeX Live (267
+  packages), Ruby, Graphviz, and system Python libraries such as
+  `python3-numpy`, `-scipy`, `-matplotlib`, `-pyserial` and PyQt6. Checked
+  afterwards: the five scripts in `auto-lubes` and `geekvibe` that import
+  those modules run through PlatformIO's penv or `uv run`, which carry their
+  own copies, and `perma-advert-log` (system Python, standard library only)
+  ran clean at the next hour. The later removals used `--no-autoremove`.
+- **Snapshots:** the 28 timeline snapshots older than 2026-11-10 were deleted
+  in each of `root` and `home` (about 50 GB came back). Kept: #1
+  "post-install baseline", #267 "pre-F45-beta", #283 "before bench cleanup"
+  and that day's hourly ones. Root #465 to #473 predate this trim and age out
+  with the timeline.
+- **Dock now:** Chrome, Files, herdr-app, Alacritty, Kimi Code, Text Editor,
+  WhatsApp Web, Thunderbird, Microsoft Teams, Zoom, Discord, ONLYOFFICE,
+  Settings.
+- **Repos:** `geeklab-infra` is now cloned in `~/repos` (it was not on this
+  laptop before).
+
+41 system services are enabled.
 
 ### Claude Code (2026-11-02)
 
