@@ -26,9 +26,11 @@ corporate IT restrictions.
 
 - **Layout:** `nvme0n1p1` 600 MB EFI, `nvme0n1p2` 2 GB ext4 `/boot`,
   `nvme0n1p3` 474.4 GiB btrfs holding `/` and `/home`, with snapper on both.
-- **Usage:** 98.5 GiB used, 367.6 GiB free. `du` counts about 54 GiB of live
-  data (`/` 29 GiB, `/home` 25 GiB). The rest is data that only snapper
-  snapshots still reference, including what the second trim removed that day.
+- **Usage:** 51 GiB used, 412.9 GiB free. `du` counts about 54 GiB of live
+  data (`/` 29 GiB, `/home` 25 GiB); it takes less on disk because the
+  filesystem is mounted with `compress=zstd:1`. Earlier that day 98.5 GiB were
+  used: the difference was data that only the manual snapshots #1 and #267
+  still referenced.
 - **Health (`nvme smart-log`):** 15 % worn, 100 % spare, 0 media errors, no
   critical warning, 30 °C. 32,723 power-on hours, 1,070 power cycles, 206 unsafe
   shutdowns, 96.77 TB written.
@@ -36,6 +38,23 @@ corporate IT restrictions.
   lanes in this machine.
 - **Sizing:** a 256 GB drive would be enough for this load, as long as snapper
   retention stays bounded. There is no reason to replace the current drive.
+- **Snapper retention (bounded 2026-11-10):** both configs, `root` and `home`,
+  keep 6 hourly, 7 daily and 2 weekly timeline snapshots, no monthly or yearly
+  (before: 24 hourly, 7 daily, 4 weekly, 6 monthly). So the timeline holds
+  nothing older than about three weeks. `NUMBER_LIMIT` is 10 and
+  `NUMBER_LIMIT_IMPORTANT` 5 (before: 50 and 10).
+  - `SPACE_LIMIT` and `FREE_LIMIT` do nothing here: they need btrfs quotas,
+    which are off on purpose (qgroups cost CPU on every snapshot delete).
+  - Manual snapshots have no cleanup algorithm, so they never age out and
+    keep pinning old data until deleted by hand. #1 "post-install baseline"
+    and #267 "pre-F45-beta" were deleted from both configs on 2026-11-10,
+    which freed 48 GiB. Root #283 "before bench cleanup" is the only one left.
+
+  ```bash
+  sudo snapper -c root get-config | grep -E 'TIMELINE_LIMIT|NUMBER_LIMIT'
+  sudo snapper -c root set-config TIMELINE_LIMIT_HOURLY=6 TIMELINE_LIMIT_MONTHLY=0
+  sudo snapper -c root cleanup timeline
+  ```
 
 ## Dotfiles state
 
@@ -341,7 +360,8 @@ does not use. Disk space was not the reason (320 GB were free).
   in each of `root` and `home` (about 50 GB came back). Kept: #1
   "post-install baseline", #267 "pre-F45-beta", #283 "before bench cleanup"
   and that day's hourly ones. Root #465 to #473 predate this trim and age out
-  with the timeline.
+  with the timeline. Later that day #1 and #267 were deleted too and the
+  timeline limits were lowered, see "Storage".
 - **Dock now:** Chrome, Files, herdr-app, Alacritty, Kimi Code, Text Editor,
   WhatsApp Web, Thunderbird, Microsoft Teams, Zoom, Discord, ONLYOFFICE,
   Settings.
