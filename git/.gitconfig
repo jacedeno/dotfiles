@@ -3,10 +3,10 @@
 	email = jacedeno@geekendzone.com
 [credential "https://github.com"]
 	helper = 
-	helper = !gh auth git-credential
+	helper = !/usr/bin/gh auth git-credential
 [credential "https://gist.github.com"]
 	helper = 
-	helper = !gh auth git-credential
+	helper = !/usr/bin/gh auth git-credential
 [core]
 	# Global hooks: dotfiles/git/hooks (commit-msg rejects AI attribution).
 	# Linked to ~/.config/git/hooks by install.sh; ~ works cross-platform.
