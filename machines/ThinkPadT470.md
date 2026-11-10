@@ -14,12 +14,28 @@ corporate IT restrictions.
 | Kernel | 7.2.11-300.fc45.x86_64 |
 | GPU | Intel HD Graphics 520 (Skylake-U GT2) **plus an NVIDIA GeForce 940MX** (GM108M, Maxwell, `10de:134d`), Optimus |
 | NVIDIA driver | RPM Fusion **`580xx`** legacy branch (580.178.04). The current branch (615+) dropped Maxwell |
+| Storage | One M.2 NVMe, 512 GB: Lenovo OEM `LENSE20512GMSP34MEAT2TA` (firmware 2.8.8341). No second disk; swap is an 8 GB zram device |
 | Login user | `cedenoj` |
 | zsh | 5.9 |
 | Oh My Posh | 29.6.1 |
 | herdr | 0.8.0 |
 | Claude Code | 2.1.222 |
 | Antigravity CLI (`agy`) | 1.1.10 |
+
+### Storage (measured 2026-11-10)
+
+- **Layout:** `nvme0n1p1` 600 MB EFI, `nvme0n1p2` 2 GB ext4 `/boot`,
+  `nvme0n1p3` 474.4 GiB btrfs holding `/` and `/home`, with snapper on both.
+- **Usage:** 98.5 GiB used, 367.6 GiB free. `du` counts about 54 GiB of live
+  data (`/` 29 GiB, `/home` 25 GiB). The rest is data that only snapper
+  snapshots still reference, including what the second trim removed that day.
+- **Health (`nvme smart-log`):** 15 % worn, 100 % spare, 0 media errors, no
+  critical warning, 30 °C. 32,723 power-on hours, 1,070 power cycles, 206 unsafe
+  shutdowns, 96.77 TB written.
+- **Link:** PCIe 3.0 x2 (8.0 GT/s). The drive supports x4 but negotiates two
+  lanes in this machine.
+- **Sizing:** a 256 GB drive would be enough for this load, as long as snapper
+  retention stays bounded. There is no reason to replace the current drive.
 
 ## Dotfiles state
 
