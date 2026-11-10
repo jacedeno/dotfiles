@@ -14,7 +14,7 @@ pieces that were migrated, and `bin/herdr-app-config` applies them.
 |---|---|
 | `keys.json` | Only the four launcher keys. Merged into the app's own `keys.json`, which herdr-app writes full of defaults |
 | `settings.json` | `appearance: dark`, `theme: gruvbox`. Merged the same way |
-| `themes/gruvbox.json` | gruvbox dark, the theme the herdr TUI used |
+| `themes/gruvbox.json` | gruvbox dark, the theme the herdr TUI used, on a pure black background since 2026-11-10 (`background`, ANSI 0, `canvas` and `chrome` are `#000000`) |
 | `mods/yazi-split/` | Opens yazi in a split to the right |
 | `mods/yazi-tab/` | Opens yazi in a new tab |
 | `mods/panel-files/` | Toggles the right panel on the Files view |
