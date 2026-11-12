@@ -246,6 +246,25 @@ the office, on GeekSpot's WiFi, next to the sniffer and the bench units.
 - **On battery nothing changed:** idle and the lid still suspend it, so it has
   to stay plugged in to be reachable.
 
+### Battery (2026-11-12)
+
+- **Two packs:** BAT0 internal (01AV419, 14.4 of 24.0 Wh, 60 %) and BAT1
+  removable (01AV425, 39.0 of 47.5 Wh, 82 %), about 53 Wh together.
+- **Charge limit 75–80 %** on both, because it lives on AC. Set through
+  UPower (`EnableChargeThreshold` on each battery, the same switch as GNOME
+  Settings → Power → *Preserve Battery Health*). UPower keeps it in
+  `/var/lib/upower/charging-threshold-status` and re-applies it at boot. No TLP:
+  it would fight `tuned`. Turn it off the night before a day away from AC.
+- **Unplugged → profile `balanced` and 50 % brightness; plugged → back to
+  what it was** (normally `performance`, 100 %). User unit
+  `power-source-mode.service` running `~/.local/bin/power-source-mode`, a
+  sibling of `ac-idle-delay`: it watches UPower and acts only on a change of
+  power source, so manual changes in between stick. The AC values are saved in
+  `~/.local/state/power-source-mode.state` while unplugged. Brightness goes
+  through Mutter's `SetBacklight` so GNOME's slider follows; on battery
+  tuned-ppd maps `balanced` to `balanced-battery`. `power-source-mode battery`
+  / `power-source-mode ac` apply either side once, for testing.
+
 ### Trimmed for the old CPU (2026-11-02)
 
 An i7-6600U (2 cores, 4 threads, 2016) with 32 GB: memory is plenty, CPU is
