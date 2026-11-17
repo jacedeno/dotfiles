@@ -11,9 +11,11 @@ corporate IT restrictions.
 | :--- | :--- |
 | Hostname | `ThinkPadT470` |
 | OS | Fedora Linux 45 (Workstation Edition) — pre-release install, then cloned from BD-1 on 2026-10-22 |
-| Kernel | 7.2.11-300.fc45.x86_64 |
+| Kernel | 7.3.3-300.fc45.x86_64 |
+| Disk | **WD PC SN730 256 GB NVMe** (`SDBQNTY-256G-1001`) since 2026-11-17, replacing the 512 GB Lenovo/Samsung `LENSE20512GMSP34MEAT2TA` (kept untouched as the fallback) |
+| RAM | **16 GB, one Hynix `HMA82GS6CJR8N-VK`** since 2026-11-17. Its twin was faulty (memtest86+ errors) and was pulled; a second 16 GB DDR4 SO-DIMM brings it back to 32 GB |
 | GPU | Intel HD Graphics 520 (Skylake-U GT2) **plus an NVIDIA GeForce 940MX** (GM108M, Maxwell, `10de:134d`), Optimus |
-| NVIDIA driver | RPM Fusion **`580xx`** legacy branch (580.178.04). The current branch (615+) dropped Maxwell |
+| NVIDIA driver | None since the bench trim (Jose's call), so `nouveau` drives the 940MX; its `PRIVRING`/`TRAP` lines in the journal are expected. Earlier: RPM Fusion `580xx` (the 615+ branch dropped Maxwell) |
 | Storage | One M.2 NVMe, 512 GB: Lenovo OEM `LENSE20512GMSP34MEAT2TA` (firmware 2.8.8341). No second disk; swap is an 8 GB zram device |
 | Login user | `cedenoj` |
 | zsh | 5.9 |
@@ -464,3 +466,21 @@ C2-B5 first, while BD-1 was unreachable.
 - **`gh`:** the token is stored in GNOME's keyring, which autologin leaves
   locked, so it is lost on every reboot. Log in with
   `gh auth login --insecure-storage`. Git itself uses BD-1's GitHub SSH key.
+
+## New NVMe and a bad RAM module (2026-11-17)
+
+Moved to a new NVMe with the kit in `geeklab-infra/provisioning/t470-nvme-migration/`
+(SystemRescue on the 128 GB SD card, live btrfs image, restore with the same UUIDs).
+The first restores failed on `crc32 mismatch` and on a checksum that changed between
+reads: memtest86+ found one of the two 16 GB modules faulty (single bits stuck at 1).
+It had also damaged one block of the home image while it was being taken.
+
+- **System:** restored from the image (clean); `btrfs scrub` and `rpm -Va` clean.
+- **Home:** recovered with `btrfs receive -E 0`, which skipped the damaged command;
+  the only file lost was an npm file of `@playwright/cli`, reinstalled.
+- **GNOME settings:** `~/.config/dconf/user` was not in the recovered home. Reloaded
+  from BD-1's `dconf dump /` (login-screen keys left out, they are locked), plus
+  `sleep-inactive-ac-type='nothing'` and animations off. Anything changed after the
+  2026-10-22 clone has to be redone by hand.
+- The Keychain stick was found with its partition table and exFAT signature wiped
+  after a failed Fedora install attempt; it is being rebuilt as a rescue stick.
