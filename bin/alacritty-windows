@@ -8,6 +8,13 @@
 # in because herdr spawns $SHELL for its panes and falls back to /bin/sh when it is
 # unset, which it is under `wsl.exe -e`.
 #
+# The sh -lc command is wrapped in literal double quotes: Windows Alacritty joins
+# [terminal.shell] args with plain spaces and never quotes them (escape_args is
+# false for the config shell, alacritty_terminal tty/windows cmdline()). Unwrapped,
+# wsl.exe splits the command and sh -lc runs a bare `export`, so the window closes
+# in seconds and herdr never starts (Sama's XPS, 2026-10-25). No double quotes may
+# appear inside the command itself.
+#
 # Run by install.sh when Windows Alacritty is installed, and safe to run by hand
 # after installing Alacritty later. Regenerates the file each time; a file it did
 # not write is moved aside first.
@@ -38,8 +45,8 @@ fi
     /^\[terminal\.shell\]/ {
       print
       print "program = \"wsl.exe\""
-      printf "args = [\"-d\", \"%s\", \"--cd\", \"~\", \"-e\", \"sh\", \"-lc\", %c", distro, 39
-      printf "export SHELL=%s; exec \"$HOME/.local/bin/herdr\"%c]\n", zsh, 39
+      printf "args = [\"-d\", \"%s\", \"--cd\", \"~\", \"-e\", \"sh\", \"-lc\", %c\"", distro, 39
+      printf "export SHELL=%s; exec $HOME/.local/bin/herdr\"%c]\n", zsh, 39
       skip = 1; next
     }
     skip && (/^\[/ || /^[[:space:]]*$/) { skip = 0 }
