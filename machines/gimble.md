@@ -496,3 +496,24 @@ Measured after the reboot, Chrome open: **4.4–4.8 GB available** (3.8 before).
   the old one had `status_indicators = "symbols"`); the unused `~/.oh-my-zsh` leftover
   removed. Remaining differences are machine-local on purpose: `~/.zshrc.local`, and
   Oh My Posh 31.9.1 here (`~/.local/bin`) vs 30.5.0 from the Fedora package on C2-B5.
+
+## Herdr desktop app (2026-11-20)
+
+Installed to match C2-B5, so Jose can work from this laptop with the same window.
+
+- **Install:** `curl -fsSL https://releases.herdr.dev/app/install.sh | sh`, user-level
+  only (`~/.local/share/herdr-app`, `~/.local/bin/herdr-app`, launcher entry). It also
+  installed `hc` (herdr-core) 0.1.21, and `hc` turned lingering on for `santi` so the
+  core outlives logins. herdr-app 0.1.16, same as C2-B5 and the T470.
+- **Config:** started once so it writes `~/.config/herdr-app`, then `herdr-app-config`
+  (gruvbox on black, the four launcher keys and mods, see `docs/herdr-app.md`). From
+  C2-B5's `shared.json`: welcome finished, Files and Changes panels, sidebar collapsed.
+  Backups in `~/.dotfiles-backup/herdr-app-20261120-072116/`.
+- **GeekForge machine:** `hc machine add geekforge --name geekforge` (no `--install`;
+  GeekForge keeps `hc` 0.1.18). It uses the existing `Host geekforge` key, so the app
+  shows the same GeekForge spaces as C2-B5, because they live in GeekForge's core,
+  not in the app.
+- **Dock:** `herdr-app.desktop` right after Alacritty, as on C2-B5. Alacritty + herdr TUI
+  stays as it was.
+- `herdr-app shot` does not work here (`render_to_image not implemented for this
+  platform`); check the window by eye.
