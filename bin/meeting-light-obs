@@ -1,0 +1,83 @@
+#!/usr/bin/env -S uv run -q --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["obsws-python"]
+# ///
+"""Drive the running OBS (scene collection "Desk") over obs-websocket for meeting-light.
+
+  meeting-light-obs frame    zoom the camera on Jose in "Desk cam" (what the virtual camera sends)
+  meeting-light-obs share    build the "Share" scene (screen region + camera box bottom-right)
+                             and open it in a windowed projector to share in Teams
+
+Changes apply live; OBS keeps them in Desk.json. Geometry below was set 2026-11-24 for the
+3440x1440 ultrawide with the MPS Chrome window on the right side and the eMeet C960 on its stand.
+"""
+import json
+import os
+import sys
+
+import obsws_python as obs
+
+CFG = "~/.var/app/com.obsproject.Studio/config/obs-studio/plugin_config/obs-websocket/config.json"
+CANVAS_W, CANVAS_H = 1920, 1080
+
+# eMeet frame 1920x1080 -> a 1280x720 window around Jose (1.5x zoom).
+CAMERA_CROP = {"cropLeft": 400, "cropTop": 300, "cropRight": 240, "cropBottom": 60}
+# Screen 3440x1440 -> the right-side window area (x 1740..3440, y 44..1340), tab strip included.
+SCREEN_CROP = {"cropLeft": 1740, "cropTop": 44, "cropRight": 0, "cropBottom": 100}
+SCREEN_W, SCREEN_H = 3440, 1440
+BOX_W, BOX_H, BOX_MARGIN = 400, 225, 16
+
+
+def client():
+    cfg = json.load(open(os.path.expanduser(CFG)))
+    return obs.ReqClient(host="localhost", port=4455, password=cfg["server_password"], timeout=10)
+
+
+def item_id(c, scene, source):
+    for i in c.get_scene_item_list(scene).scene_items:
+        if i["sourceName"] == source:
+            return i["sceneItemId"]
+    return c.create_scene_item(scene, source, True).scene_item_id
+
+
+def frame(c):
+    c.set_scene_item_transform("Desk cam", item_id(c, "Desk cam", "Desk camera"), CAMERA_CROP)
+    print("OBS: camera zoomed on Desk cam")
+
+
+def share(c):
+    if "Share" not in [s["sceneName"] for s in c.get_scene_list().scenes]:
+        c.create_scene("Share")
+    screen = item_id(c, "Share", "Screen")
+    c.set_scene_item_transform("Share", screen, {
+        **SCREEN_CROP, "positionX": 0, "positionY": 0, "alignment": 5,
+        "boundsType": "OBS_BOUNDS_SCALE_INNER", "boundsWidth": CANVAS_W, "boundsHeight": CANVAS_H,
+        "boundsAlignment": 0,
+    })
+    # Where the region lands on the canvas (scaled to fit, centred), to pin the box to its corner.
+    rw = SCREEN_W - SCREEN_CROP["cropLeft"] - SCREEN_CROP["cropRight"]
+    rh = SCREEN_H - SCREEN_CROP["cropTop"] - SCREEN_CROP["cropBottom"]
+    scale = min(CANVAS_W / rw, CANVAS_H / rh)
+    right = (CANVAS_W + rw * scale) / 2
+    bottom = (CANVAS_H + rh * scale) / 2
+    cam = item_id(c, "Share", "Desk camera")
+    c.set_scene_item_transform("Share", cam, {
+        **CAMERA_CROP, "alignment": 5,
+        "positionX": right - BOX_W - BOX_MARGIN, "positionY": bottom - BOX_H - BOX_MARGIN,
+        "boundsType": "OBS_BOUNDS_SCALE_INNER", "boundsWidth": BOX_W, "boundsHeight": BOX_H,
+        "boundsAlignment": 0,
+    })
+    c.set_scene_item_index("Share", cam, len(c.get_scene_item_list("Share").scene_items) - 1)
+    c.send("OpenSourceProjector", {"sourceName": "Share", "monitorIndex": -1})
+    print("OBS: Share scene ready, projector window opened — share THAT window in Teams")
+
+
+if __name__ == "__main__":
+    action = sys.argv[1] if len(sys.argv) > 1 else ""
+    if action not in ("frame", "share"):
+        sys.exit(__doc__)
+    c = client()
+    frame(c)
+    if action == "share":
+        share(c)

@@ -3,6 +3,9 @@
 #
 #   meeting-light        light on at 150 lm / 4500 K, camera white balance locked to match,
 #                        OBS running with its virtual camera on (pick "OBS Virtual Camera" in Teams)
+#   meeting-light share  all of the above, plus the "Share" scene (the right-side window area of
+#                        the monitor with the camera boxed bottom-right) in a projector window;
+#                        share that window in Teams once and keep working on the right side
 #   meeting-light off    light off, camera back to auto white balance, OBS closed
 #
 # OBS (Flatpak, profile/scene collection "Desk") feeds the eMeet through its colour and
@@ -89,3 +92,15 @@ v4l2-ctl -d "$CAM" -c white_balance_temperature=$((KELVIN / 10)),backlight_compe
 echo "eMeet: white balance locked at ${KELVIN} K, backlight compensation off, sharpness 63, 60 Hz"
 
 obs_vcam_on
+
+# obs-websocket answers a few seconds after the virtual camera comes up on a fresh start.
+OBS_HELPER="$(dirname "$(readlink -f "$0")")/meeting-light-obs"
+for _ in $(seq 1 10); do
+  "$OBS_HELPER" frame >/dev/null 2>&1 && break
+  sleep 1
+done
+if [[ ${1:-on} == share ]]; then
+  "$OBS_HELPER" share
+else
+  echo "OBS: camera zoomed on Desk cam"
+fi
