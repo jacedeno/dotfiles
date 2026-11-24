@@ -64,6 +64,22 @@ obs_vcam_on() {
   return 1
 }
 
+# The Office speaker (Bluetooth) plus the separate USB mic can echo back to the call; 40 % keeps
+# the speaker quiet enough for Teams' echo canceller (Jose, 2026-11-24). Headphones if not.
+SPEAKER="Office speaker"
+SPEAKER_VOLUME=0.40
+
+speaker_volume() {
+  local id
+  id=$(wpctl status | sed -n '/Sinks:/,/Sources:/p' | grep -F "$SPEAKER" | grep -oE '[0-9]+\.' | head -1 | tr -d .)
+  if [[ -z $id ]]; then
+    echo "$SPEAKER not connected; volume left alone." >&2
+    return 0
+  fi
+  wpctl set-volume "$id" "$SPEAKER_VOLUME"
+  echo "$SPEAKER: volume $(wpctl get-volume "$id" | awk '{print $2 * 100}') %"
+}
+
 cam_ok() {
   if [[ ! -e $CAM ]]; then
     echo "eMeet C960 has no video node. If lsusb still lists 328f:2013, its firmware hung at" >&2
@@ -84,6 +100,7 @@ fi
 "$LITRA" brightness --value "$LUMENS"
 "$LITRA" temperature --value "$KELVIN"
 echo "Litra: ${LUMENS} lm, ${KELVIN} K"
+speaker_volume
 
 cam_ok || exit 1
 # The C960 exposes white balance in tens of Kelvin (300-600) and has no manual exposure.
