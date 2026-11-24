@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# meeting-light — meeting preset for C2-B5's Litra Beam + eMeet C960.
+#
+#   meeting-light        light on at 150 lm / 4500 K, camera white balance locked to match
+#   meeting-light off    light off, camera back to auto white balance
+#
+# 150 lm / 4500 K was picked by Jose on 2026-11-24 for a dim office: the Litra is the main
+# light, 4500 K is easier on the eyes than 5000 K. Camera settings are lost on replug/reboot,
+# so run this again after either.
+set -euo pipefail
+
+LUMENS=150
+KELVIN=4500
+LITRA="$HOME/.local/bin/litra"
+CAM=/dev/v4l/by-id/usb-SHENZHEN_EMEET_TECHNOLOGY_CO._LTD._HD_Webcam_eMeet_C960_Ucamera002-video-index0
+
+cam_ok() {
+  if [[ ! -e $CAM ]]; then
+    echo "eMeet C960 has no video node. If lsusb still lists 328f:2013, its firmware hung at" >&2
+    echo "boot (uvcvideo -110 timeouts): unplug it, wait 5 s, plug it back, run this again." >&2
+    return 1
+  fi
+}
+
+if [[ ${1:-on} == off ]]; then
+  "$LITRA" off
+  cam_ok && v4l2-ctl -d "$CAM" -c white_balance_automatic=1
+  echo "Litra off, camera white balance back to auto."
+  exit 0
+fi
+
+"$LITRA" on
+"$LITRA" brightness --value "$LUMENS"
+"$LITRA" temperature --value "$KELVIN"
+echo "Litra: ${LUMENS} lm, ${KELVIN} K"
+
+cam_ok || exit 1
+# The C960 exposes white balance in tens of Kelvin (300-600) and has no manual exposure.
+v4l2-ctl -d "$CAM" -c white_balance_automatic=0
+v4l2-ctl -d "$CAM" -c white_balance_temperature=$((KELVIN / 10)),backlight_compensation=0,sharpness=63,power_line_frequency=2
+echo "eMeet: white balance locked at ${KELVIN} K, backlight compensation off, sharpness 63, 60 Hz"
