@@ -271,7 +271,10 @@ alias gp="git push"
 alias gl="git log --oneline --graph --decorate -15"
 alias gd="git diff"
 
-# --- Aliases: Antigravity CLI ----------------------------------------------------
+# --- Antigravity CLI -------------------------------------------------------------
+# Auto-compact at 40% of the active model's context window (400k on 1M models,
+# matching Claude Code's autoCompactWindow). Verify inside agy with /context.
+export AGY_CLI_AUTO_COMPACT_OVERRIDE="40%"
 alias agy-yolo='agy --dangerously-skip-permissions'
 
 # --- Aliases: quick config edit --------------------------------------------------

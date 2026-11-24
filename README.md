@@ -221,7 +221,10 @@ are untouched; an existing custom command is never replaced):
 ```
 
 Inside a running `agy` session, activate or reload it live with
-`/statusline ~/.claude/statusline/statusline.py`.
+`/statusline ~/.claude/statusline/statusline.py`. `zsh/.zshrc` also exports
+`AGY_CLI_AUTO_COMPACT_OVERRIDE="40%"` so `agy` auto-compacts at 40% of the
+active model's context window (400k on 1M models, matching Claude Code's
+`autoCompactWindow`; check with `/context`).
 
 Notes:
 
