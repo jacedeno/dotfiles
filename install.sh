@@ -245,33 +245,41 @@ HERDR_KEYS
   fi
 fi
 
-# --- 4b. Claude Code status line ---------------------------------------------------
-# The rows under Claude Code's prompt (model, effort, repo, branch, context bar,
-# cost, cache, rate limits) come from claude/statusline.py. Claude Code only runs
-# it if ~/.claude/settings.json names it under "statusLine", so besides the
-# symlink we add that key when it is missing. Existing keys are never touched,
-# and an existing "statusLine" (even a different one) is left alone.
+# --- 4b. Claude Code + Antigravity CLI status line ---------------------------------
+# The rows under Claude Code's and agy's prompt (model, effort, repo, branch,
+# context bar, cost, cache, rate limits / quotas) come from claude/statusline.py.
+# Existing keys are never touched, and an existing non-empty statusLine command
+# (even a different one) is left alone.
 link "$DOTFILES/claude/statusline.py" "$HOME/.claude/statusline/statusline.py"
 chmod +x "$DOTFILES/claude/statusline.py"
 if command -v python3 >/dev/null 2>&1; then
-  python3 - "$HOME/.claude/settings.json" "$HOME/.claude/statusline/statusline.py" <<'EOF'
+  python3 - "$HOME/.claude/settings.json" "$HOME/.gemini/antigravity-cli/settings.json" "$HOME/.claude/statusline/statusline.py" <<'EOF'
 import json, os, sys
-path, script = sys.argv[1], sys.argv[2]
-try:
-    with open(path) as f:
-        cfg = json.load(f)
-except FileNotFoundError:
-    cfg = {}
-if "statusLine" in cfg:
-    print(f"\033[1;32m[dotfiles]\033[0m OK: statusLine already set in {path}")
-    sys.exit(0)
-cfg["statusLine"] = {"type": "command", "command": script,
-                     "padding": 0, "refreshInterval": 60}
-os.makedirs(os.path.dirname(path), exist_ok=True)
-with open(path, "w") as f:
-    json.dump(cfg, f, indent=2)
-    f.write("\n")
-print(f"\033[1;32m[dotfiles]\033[0m Added statusLine to {path}")
+claude_path, agy_path, script = sys.argv[1], sys.argv[2], sys.argv[3]
+
+def ensure_statusline(path, default_obj, only_if_dir_exists=False):
+    if only_if_dir_exists and not os.path.isdir(os.path.dirname(path)):
+        return
+    try:
+        with open(path) as f:
+            cfg = json.load(f)
+    except FileNotFoundError:
+        cfg = {}
+    cur = cfg.get("statusLine")
+    if isinstance(cur, dict) and cur.get("command"):
+        print(f"\033[1;32m[dotfiles]\033[0m OK: statusLine already set in {path}")
+        return
+    cfg["statusLine"] = default_obj
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(cfg, f, indent=2)
+        f.write("\n")
+    print(f"\033[1;32m[dotfiles]\033[0m Added statusLine to {path}")
+
+ensure_statusline(claude_path, {"type": "command", "command": script,
+                                "padding": 0, "refreshInterval": 60})
+ensure_statusline(agy_path, {"type": "command", "command": script,
+                             "enabled": True}, only_if_dir_exists=True)
 EOF
 else
   warn "python3 not found — statusline.py needs it; skipped the settings.json edit."

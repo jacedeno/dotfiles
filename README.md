@@ -192,22 +192,24 @@ captures the mouse, so dragging selects nothing. Either hold **Shift while dragg
 to bypass mouse reporting, or skip the mouse entirely with `Ctrl+Shift+K`. This is
 the single most-forgotten thing in this config, which is why it is written down here.
 
-### Claude Code status line
+### Claude Code and Antigravity CLI status line
 
-The three rows under Claude Code's prompt are not a built-in: they come from
-`claude/statusline.py`, which Claude Code runs on every refresh with the session
-JSON on stdin. It was written on GeekForge (2026-09-10) and moved here on
-2026-09-21 so every machine shows the same thing.
+The three rows under Claude Code's and Antigravity CLI's (`agy`) prompt are not a
+built-in: they come from `claude/statusline.py`, which both CLIs run on refresh
+with the session JSON on stdin. It was written on GeekForge (2026-09-10), moved
+here on 2026-09-21 so every machine shows the same thing, and extended on
+2026-11-23 to handle `agy`'s payload schema alongside Claude Code's.
 
 | Row | Contents |
 | :--- | :--- |
-| 1 | Model, effort level, `[fast/think]` tags, `owner/repo` (or the cwd basename outside a repo), git branch with `+staged ~dirty` or `clean` |
-| 2 | Context bar and percentage (green → yellow at 70% → red at 90%), tokens in context / window size, session cost in USD, wall time and API time, `+lines/-lines` when there are edits |
-| 3 | Prompt cache (`warm`/`cold`, hit ratio, TTL) and the 5-hour / 7-day rate limits with time to reset |
+| 1 | Model, effort level, `[fast/think]` tags, `owner/repo` (from payload or `origin` remote, else cwd basename), git branch with `+staged ~dirty` or `clean` |
+| 2 | Context bar and percentage (green → yellow at 70% → red at 90%), tokens in context / window size, session cost in USD, wall time (and API time when reported), `+lines/-lines` when there are edits |
+| 3 | Prompt cache (`warm`/`cold`, hit ratio, TTL) and the 5-hour / 7-day rate limits or `agy` quota buckets with time to reset |
 
 `install.sh` symlinks the script to `~/.claude/statusline/statusline.py` and, if
-`~/.claude/settings.json` has no `statusLine` key yet, adds this one (other keys
-are untouched; an existing `statusLine` is never replaced):
+`~/.claude/settings.json` (or `~/.gemini/antigravity-cli/settings.json`, when
+`agy` is installed) has no `statusLine.command` yet, sets it there (other keys
+are untouched; an existing custom command is never replaced):
 
 ```json
 "statusLine": {
@@ -217,6 +219,9 @@ are untouched; an existing `statusLine` is never replaced):
   "refreshInterval": 60
 }
 ```
+
+Inside a running `agy` session, activate or reload it live with
+`/statusline ~/.claude/statusline/statusline.py`.
 
 Notes:
 
@@ -264,7 +269,7 @@ Notes:
 ├── bin/yazi-update           # install/upgrade yazi in ~/.local/bin from the upstream release
 ├── bin/herdr-app-config      # merge the herdr-app overrides into ~/.config/herdr-app (idempotent)
 ├── herdr-app/                # herdr-app GUI overrides: launcher keys, four launcher mods, gruvbox theme
-├── claude/statusline.py      # Claude Code status line — model, effort, repo/branch, context bar, cost, cache, rate limits
+├── claude/statusline.py      # Claude Code + agy status line — model, effort, repo/branch, context bar, cost, cache, quotas
 ├── ohmyposh/atomic.omp.json  # vendored theme, copied to ~/.config/ohmyposh/
 ├── docs/
 │   ├── yazi.md               # tree + yazi: browsing files as a hierarchy in the terminal, keys and usage
