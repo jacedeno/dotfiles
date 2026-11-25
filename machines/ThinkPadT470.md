@@ -167,7 +167,7 @@ The pre-clone state (dconf dump, RPM and flatpak lists) is kept in
 
 ## The bench laptop at the office (2026-11-02)
 
-BD-1 is being sold, so the T470 takes over as the bench machine: it stays on at
+BD-1 was sold on 2026-11-20; the T470 took over as the bench machine: it stays on at
 the office, on GeekSpot's WiFi, next to the sniffer and the bench units.
 
 ### WireGuard: `wg0` peer "ThinkPadT470", `10.0.0.6`
